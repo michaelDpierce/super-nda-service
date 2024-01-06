@@ -5,6 +5,7 @@ gem 'rails', '7.1.2'
 gem 'pg', '~> 1.1'
 gem 'bootsnap', require: false
 gem 'cloud66'
+gem 'rack-cors'
 
 group :development do
   gem 'puma', '6.4.1'
