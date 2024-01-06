@@ -1,0 +1,5 @@
+production:
+  rails:
+    configuration:
+      asset_pipeline_precompile: false
+      ruby_version: 3.3.0
