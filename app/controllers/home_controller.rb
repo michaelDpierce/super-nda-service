@@ -2,10 +2,11 @@
 # Copyright 2024, MinuteBook. All rights reserved.
 # ==============================================================================
 
-Rails.application.routes.draw do
-  root 'home#welcome'
-
-  namespace :v1, defaults: { format: :json } do
-    resources :auth, only: :create
+class HomeController < ActionController::API
+  def welcome
+    render json: {
+      message: "Welcome to the MinuteBook API",
+      questions: "Email matchmike1313@gmail.com for questions"
+    }.to_json
   end
 end

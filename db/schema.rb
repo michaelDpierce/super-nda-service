@@ -10,9 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_06_161142) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_07_195735) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "project_users", force: :cascade do |t|
+    t.integer "project_id"
+    t.integer "user_id"
+    t.boolean "access", default: true
+    t.boolean "admin", default: false
+    t.boolean "pinned", default: true
+    t.datetime "pinned_at", precision: nil
+    t.datetime "last_viewed_at", precision: nil
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "email"
@@ -20,10 +32,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_06_161142) do
     t.string "first_name"
     t.string "last_name"
     t.boolean "app_admin", default: false
-    t.string "stripe_customer_id"
     t.string "source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_login"
   end
 
 end
