@@ -16,6 +16,7 @@ gem 'pg_search'
 gem 'fast_jsonapi'
 gem 'pundit'
 gem 'hashid-rails'
+gem 'image_processing'
 
 group :development do
   gem 'puma', '6.4.1'

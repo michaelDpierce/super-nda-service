@@ -7,5 +7,9 @@ Rails.application.routes.draw do
 
   namespace :v1, defaults: { format: :json } do
     resources :auth, only: :create
+
+    resources :projects, only: %i[index show create update destroy]
+    
+    get 'search', to: 'projects#search'
   end
 end
