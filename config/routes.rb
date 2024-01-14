@@ -9,7 +9,10 @@ Rails.application.routes.draw do
     resources :auth, only: :create
 
     resources :projects, only: %i[index show create update destroy]
-    
-    get 'search', to: 'projects#search'
+    get :search, to: 'projects#search'
+
+    resources :project_users, only: %i[index create update destroy] do
+      put :pinned, to: 'project_users#toggle_pinned', on: :member
+    end
   end
 end

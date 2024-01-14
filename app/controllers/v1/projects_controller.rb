@@ -13,18 +13,29 @@ class V1::ProjectsController < V1::BaseController
 
     if params[:pinned].present?
       project_ids =
-        ProjectUser.where(user_id: @current_user.id, pinned: true).pluck(:project_id)
+        ProjectUser.where(user_id: @current_user.id, pinned: true)
+          .pluck(:project_id)
 
       @resource = @resource.where(id: project_ids)
+
+      render_resource(
+        @resource,
+        DashboardSerializer,
+        params: { user_id: @current_user.id }
+      )
+    else
+      project_ids =
+        ProjectUser.where(user_id: @current_user.id)
+          .pluck(:project_id)
+
+      @resource = @resource.where(id: project_ids)
+
+      render_resource(
+        @resource,
+        ProjectsSerializer,
+        {}
+      )
     end
-
-    puts @resource.first.inspect
-
-    render_resource(
-      @resource,
-      ProjectsSerializer,
-      params: { user_id: @current_user.id }
-    )
   end
 
   # GET /v1/projects/:id
@@ -34,7 +45,13 @@ class V1::ProjectsController < V1::BaseController
 
   # POST /v1/projects
   def create
-    service = CreateProjectService.new(@current_user, create_project_params, request&.remote_ip)
+    service =
+      CreateProjectService.new(
+        @current_user,
+        create_project_params,
+        request&.remote_ip
+      )
+
     service.call
     render(json: service.result, status: service.status)
   end
@@ -122,17 +139,17 @@ class V1::ProjectsController < V1::BaseController
   private
 
   def find_project
-    puts "find_project"
     @project = @current_user.projects_with_access.find(params[:id])
     
     head(:no_content) unless @project.present?
   end
   
   def find_project_user
-    puts "find_project_user"
     @project_user = @project.project_users.find_by(user_id: @current_user.id)
 
-    render(json: { message: 'Project access is denied' }, status: :forbidden) if @project_user.nil?
+    if @project_user.nil?
+      render(json: { message: 'Project access is denied' }, status: :forbidden)
+    end
   end
 
   def create_project_params
