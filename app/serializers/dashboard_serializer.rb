@@ -6,7 +6,7 @@ class DashboardSerializer < ApplicationSerializer
   set_id :hashid
   set_type :project
 
-  attribute :name, :description
+  attribute :name, :description, :primary_color
 
   attribute :logo do |object|
     object.logo.blob.url if object.logo.attached?
