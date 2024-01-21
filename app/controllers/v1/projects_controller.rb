@@ -38,9 +38,21 @@ class V1::ProjectsController < V1::BaseController
     end
   end
 
-  # GET /v1/projects/:id
-  def show
-    render(json: ProjectSerializer.new(@project).serialized_json, status: :ok)
+  # GET /v1/pinned
+  def pinned
+    base_filtering!
+
+    project_ids =
+      ProjectUser.where(user_id: @current_user.id, pinned: true)
+        .pluck(:project_id)
+
+    @resource = @resource.where(id: project_ids)
+
+    render_resource(
+      @resource,
+      PinnedProjectsSerializer,
+      params: { user_id: @current_user.id }
+    )
   end
 
   # POST /v1/projects
@@ -57,70 +69,55 @@ class V1::ProjectsController < V1::BaseController
   end
 
   # GET /v1/projects/:hashid
-  # def show
-  #   authorize(@project, :access?)
+  def show
+    options = {
+      params: {
+        permissions: {
+          isAdmin: @project_user.try(:admin)
+        },
+        meta: {
+          current_user_id: @current_user.try(:id),
+          project_user_id: @project_user.try(:hashid),
+          status: @project.try(:status),
+          pinned: @project_user.try(:pinned)
+        }
+      },
+    }
 
-  #   options = {
-  #     params: {
-  #       current_user_id: current_user.id,
-  #       group_id: @project_user.group.hashid,
-  #       project_user_id: @project_user.hashid,
-  #       pinned: @project_user.pinned,
-  #       new_files_count: @project_user.new_files_count,
-  #       permissions: {
-  #         isAdmin: @project_user.admin,
-  #         addUsersToGroup: @project_user.add_users_to_group,
-  #         removeUserFromGroup: @project_user.remove_user_from_group,
-  #         isViewIndex: @project_user.view_index,
-  #         paid: @project.paid,
-  #         status: @project.status
-  #       },
-  #       settings: {
-  #         filesNotification: @project_user&.files_notification,
-  #         projectAccessAdminNotification: @project_user&.project_access_admin_notification
-  #       }
-  #     },
-  #   }
-
-  #   if @project.present?
-  #     render json: ProjectSerializer.new(@project, options).serialized_json
-  #   else
-  #     render json: { message: 'Project not found' }, status: :not_found
-  #   end
-  # end
+    if @project.present?
+      render json: ProjectSerializer.new(@project, options).serialized_json
+    else
+      render json: { message: 'Project not found' }, status: :not_found
+    end
+  end
 
   # PUT /v1/projects/:hashid
   # PATCH /v1/projects/:hashid
-  # def update
-  #   authorize(@project, :admin?)
+  def update
+    options = {
+      params: {
+        permissions: {
+          isAdmin: @project_user.try(:admin)
+        },
+        meta: {
+          current_user_id: @current_user.try(:id),
+          project_user_id: @project_user.try(:hashid),
+          status: @project.try(:status),
+          pinned: @project_user.try(:pinned)
+        }
+      },
+    }
 
-  #   options = {
-  #     params: {
-  #       group_id: @project_user.group.hashid,
-  #       project_user_id: @project_user.hashid,
-  #       permissions: {
-  #         isAdmin: @project_user.admin,
-  #         addUsersToGroup: @project_user.add_users_to_group,
-  #         removeUserFromGroup: @project_user.remove_user_from_group,
-  #         isViewIndex: @project_user.view_index,
-  #         paid: @project.paid,
-  #         status: @project.status
-  #       }
-  #     }
-  #   }
-
-  #   if @project.update(update_project_params)
-  #     render json: ProjectSerializer.new(@project, options).serialized_json
-  #   else
-  #     render json: { errors: @project.errors.messages },
-  #            status: :unprocessable_entity
-  #   end
-  # end
+    if @project.update(update_project_params)
+      render json: ProjectSerializer.new(@project, options).serialized_json
+    else
+      render json: { errors: @project.errors.messages },
+             status: :unprocessable_entity
+    end
+  end
 
   # DELETE /v1/projects/:hashid
-  def destroy
-    # authorize(@project, :admin?)
-    
+  def destroy    
     @project.destroy!
     head(:no_content)
   end
@@ -159,7 +156,7 @@ class V1::ProjectsController < V1::BaseController
   def update_project_params
     params
       .require(:project)
-      .permit(:name, :description, :cover, :logo, :paid, :status)
+      .permit(:name, :description, :logo, :status)
   end
 
   def forbidden

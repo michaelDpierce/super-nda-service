@@ -5,23 +5,24 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-gem 'rails', '7.1.2'
-gem 'pg', '~> 1.1'
-gem 'bootsnap', require: false
-gem 'cloud66'
-gem 'rack-cors'
-gem 'clerk-sdk-ruby', require: 'clerk'
+gem 'ancestry', '4.3.3'
+gem 'bootsnap', '1.17.0', require: false
+gem 'clerk-sdk-ruby', '2.11.1', require: 'clerk'
+gem 'cloud66', '1.0.0'
+gem 'fast_jsonapi', '1.5'
+gem 'hashid-rails', '1.4.1'
+gem 'image_processing', '1.12.2'
 gem 'pagy', '6.2.0'
-gem 'pg_search'
-gem 'fast_jsonapi'
-gem 'pundit'
-gem 'hashid-rails'
-gem 'image_processing'
+gem 'pg_search', '2.3.6'
+gem 'pg', '1.5.4'
+gem 'rack-cors', '2.0.1'
+gem 'rails', '7.1.2'
 
 group :development do
   gem 'puma', '6.4.1'
 end
 
 group :development, :test do
-  gem 'dotenv-rails'
+  gem 'dotenv-rails', '2.8.1'
 end
+

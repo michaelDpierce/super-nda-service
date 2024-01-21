@@ -10,6 +10,7 @@ Rails.application.routes.draw do
 
     resources :projects, only: %i[index show create update destroy]
     get :search, to: 'projects#search'
+    get :pinned_projects, to: 'projects#pinned'
 
     resources :project_users, only: %i[index create update destroy] do
       put :pinned, to: 'project_users#toggle_pinned', on: :member

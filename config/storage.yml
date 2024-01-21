@@ -11,11 +11,11 @@
 
 test:
   service: Disk
-  root: <%= Rails.root.join("tmp/storage") %>
+  root: <%= Rails.root.join('tmp/storage') %>
 
 local:
   service: Disk
-  root: <%= Rails.root.join("storage") %>
+  root: <%= Rails.root.join('storage') %>
 
 digitalocean:
   service: S3

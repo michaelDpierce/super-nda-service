@@ -158,8 +158,6 @@ GEM
       stringio
     puma (6.4.1)
       nio4r (~> 2.0)
-    pundit (2.3.1)
-      activesupport (>= 3.0.0)
     racc (1.7.3)
     rack (3.0.8)
     rack-cors (2.0.1)
@@ -224,19 +222,18 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  bootsnap
-  clerk-sdk-ruby
-  cloud66
-  dotenv-rails
-  fast_jsonapi
-  hashid-rails
-  image_processing
+  bootsnap (= 1.17.0)
+  clerk-sdk-ruby (= 2.11.1)
+  cloud66 (= 1.0.0)
+  dotenv-rails (= 2.8.1)
+  fast_jsonapi (= 1.5)
+  hashid-rails (= 1.4.1)
+  image_processing (= 1.12.2)
   pagy (= 6.2.0)
-  pg (~> 1.1)
-  pg_search
+  pg (= 1.5.4)
+  pg_search (= 2.3.6)
   puma (= 6.4.1)
-  pundit
-  rack-cors
+  rack-cors (= 2.0.1)
   rails (= 7.1.2)
 
 BUNDLED WITH

@@ -7,4 +7,12 @@ class ProjectSerializer < ApplicationSerializer
   set_type :project
 
   attribute :name, :description
+
+  attribute :permissions do |_, params|
+    params[:permissions]
+  end
+
+  attribute :meta do |_, params|
+    params[:meta]
+  end
 end 

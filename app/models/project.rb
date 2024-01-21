@@ -22,13 +22,13 @@ class Project < ApplicationRecord
   has_many :users, through: :project_users
   has_many :project_users_with_access, -> { with_access }, class_name: 'ProjectUser'
   has_many :users_with_access, source: :user, through: :project_users_with_access
+  has_many :admin_project_users, -> { with_admin }, class_name: 'ProjectUser'
+  has_many :admin_users, source: :user, through: :admin_project_users
 
   has_one_attached :logo, dependent: :destroy_async
-  has_one_attached :cover, dependent: :destroy_async
 
   enum status: {
     active: 0,
-    paused: 1,
-    closed: 2,
+    archived: 1
   }
 end
