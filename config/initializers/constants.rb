@@ -2,7 +2,5 @@
 # Copyright 2024, MinuteBook. All rights reserved.
 # ==============================================================================
 
-Cloud66.configure do |config|
-  config.engine_automount = true
-  config.engine_automount_endpoint = '/cloud66'
-end
+REGEX_PATTERN = /[^0-9a-zA-Z&\-. ]/.freeze
+ROOT_SLUG = 'root'.freeze

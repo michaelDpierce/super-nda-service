@@ -22,8 +22,6 @@ class AuthService
     @user = find_user_by_source(user_data)
     @user = create_user_by_source(user_data) if @user.nil?
 
-    puts @user.attributes if @user.present?
-
     if @user.present?
       @user.last_login = Time.now
       @user.save!
@@ -89,8 +87,6 @@ class AuthService
   end
 
   def create_user_by_source(data)
-    puts data
-
     User.create!(
       email: data['email_addresses'].first['email_address'],
       first_name: data['first_name'],

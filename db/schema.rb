@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_01_15_185841) do
+ActiveRecord::Schema[7.1].define(version: 2024_01_22_231356) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,32 @@ ActiveRecord::Schema[7.1].define(version: 2024_01_15_185841) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "directories", force: :cascade do |t|
+    t.string "name"
+    t.integer "project_id"
+    t.string "slug"
+    t.string "ancestry"
+    t.integer "ancestry_depth", default: 0
+    t.integer "user_id"
+    t.datetime "created_at", precision: nil
+    t.datetime "updated_at", precision: nil
+    t.datetime "display_date", precision: nil
+    t.index ["ancestry"], name: "index_directories_on_ancestry"
+    t.index ["project_id"], name: "index_directories_on_project_id"
+    t.index ["slug", "project_id", "ancestry"], name: "index_directories_on_slug_and_project_id_and_ancestry", unique: true
+    t.index ["slug"], name: "index_directories_on_slug"
+  end
+
+  create_table "directory_files", force: :cascade do |t|
+    t.integer "directory_id"
+    t.integer "blob_id"
+    t.integer "user_id"
+    t.integer "project_id"
+    t.string "filename"
+    t.index ["blob_id"], name: "index_directory_files_on_blob_id"
+    t.index ["directory_id"], name: "index_directory_files_on_directory_id"
   end
 
   create_table "pg_search_documents", force: :cascade do |t|

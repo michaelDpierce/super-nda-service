@@ -3,9 +3,11 @@
 # =============================================================================
 
 class V1::ProjectsController < V1::BaseController
-  before_action :find_project, only: %i[show update destroy]
+  before_action :find_project,
+    only: %i[show update destroy folder remove_supporting_document]
 
-  before_action :find_project_user, only: %i[show update destroy]
+  before_action :find_project_user,
+    only: %i[show update destroy folder remove_supporting_document]
 
   # GET /v1/projects
   def index
@@ -80,7 +82,8 @@ class V1::ProjectsController < V1::BaseController
           project_user_id: @project_user.try(:hashid),
           status: @project.try(:status),
           pinned: @project_user.try(:pinned)
-        }
+        },
+        documents: @project.documents 
       },
     }
 
@@ -122,6 +125,13 @@ class V1::ProjectsController < V1::BaseController
     head(:no_content)
   end
 
+  # DELETE /v1/projects/:hashid/remove_supporting_document/:document_id
+  def remove_supporting_document
+    attachment = @project.documents.find(params[:document_id])
+    attachment.purge # or use purge_later
+    head(:ok)
+  end
+
   # GET /v1/search
   def search
     service = ProjectSearchService.new(
@@ -133,11 +143,24 @@ class V1::ProjectsController < V1::BaseController
     render(json: { result: service.result })
   end
 
+  # GET /v1/projects/:hashid/folder/:directory_id
+  def folder
+    directory_id = if params[:directory_id].present?
+      params[:directory_id]
+    else
+      @project.directories.root.id
+    end
+
+    service =
+      ProjectFolderService.new(@project, directory_id, @current_user)
+      
+    render(json: { data: service.data })
+  end
+
   private
 
   def find_project
     @project = @current_user.projects_with_access.find(params[:id])
-    
     head(:no_content) unless @project.present?
   end
   
@@ -156,7 +179,8 @@ class V1::ProjectsController < V1::BaseController
   def update_project_params
     params
       .require(:project)
-      .permit(:name, :description, :logo, :status)
+      .permit(:name, :description, :logo, :status, documents: [])
+      .select { |x,v| v.present? }
   end
 
   def forbidden

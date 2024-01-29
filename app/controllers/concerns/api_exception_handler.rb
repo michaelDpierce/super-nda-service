@@ -10,10 +10,6 @@ module ApiExceptionHandler
   DecodeError      = Class.new(StandardError)
 
   included do
-    # rescue_from Pundit::NotAuthorizedError do |exception|
-    #   render(json: { message: exception.message }, status: :forbidden)
-    # end
-
     rescue_from ApiExceptionHandler::ExpiredSignature do |exception|
       render(json: { message: exception.message }, status: :invalid_token)
     end

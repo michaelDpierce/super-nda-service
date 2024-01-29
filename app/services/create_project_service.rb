@@ -24,7 +24,7 @@ class CreateProjectService
 
       if @project.save
         assign_project_user!
-        # create_def_directory!
+        create_root_directory!
         @result = ProjectSerializer.new(@project).serialized_json
       else
         @status = :unprocessable_entity
@@ -47,21 +47,13 @@ class CreateProjectService
     )
   end
 
-  # def create_def_directory!
-  #   Directory
-  #     .create!(
-  #       user: @user,
-  #       slug: Directory::ROOT_SLUG,
-  #       project_id: @project.id,
-  #       name: @project.name,
-  #       modified_by_user_id: @user.id
-  #     )
-  #     .permissions
-  #     .create!(
-  #       permission_subject: @group,
-  #       view: true,
-  #       download: true,
-  #       edit: true
-  #     )
-  # end
+  def create_root_directory!
+    Directory
+      .create!(
+        user_id: @user.id,
+        slug: Directory::ROOT_SLUG,
+        project_id: @project.id,
+        name: @project.name
+      )
+  end
 end

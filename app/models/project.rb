@@ -25,7 +25,12 @@ class Project < ApplicationRecord
   has_many :admin_project_users, -> { with_admin }, class_name: 'ProjectUser'
   has_many :admin_users, source: :user, through: :admin_project_users
 
+  has_many :directories, dependent: :destroy_async
+  has_many :files, through: :directories
+  has_many :directory_files, through: :directories
+
   has_one_attached :logo, dependent: :destroy_async
+  has_many_attached :documents, dependent: :destroy_async
 
   enum status: {
     active: 0,

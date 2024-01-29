@@ -25,4 +25,3 @@ end
 group :development, :test do
   gem 'dotenv-rails', '2.8.1'
 end
-
