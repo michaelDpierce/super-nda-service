@@ -27,4 +27,4 @@ production:
   port: <%= ENV['DATABASE_PORT'] || 25061 %>
   pool: <%= ENV['DB_POOL'] || ENV['RAILS_MAX_THREADS'] || 10 %>
   sslmode: 'require'
-  sslca: <%= ENV['DATABASE_SSL_CA_PATH'] %>
+  sslca: 'config/certs/prod.crt'
