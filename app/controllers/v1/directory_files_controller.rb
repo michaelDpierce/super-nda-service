@@ -3,6 +3,7 @@
 # =============================================================================
 
 class V1::DirectoryFilesController < V1::BaseController
+  before_action :find_directory_file!, only: %i[update]
   before_action :find_project!, only: %i[upload]
   before_action :find_directory!, only: %i[upload]
 
@@ -28,7 +29,27 @@ class V1::DirectoryFilesController < V1::BaseController
     end
   end
 
+  # PUT /v1/projects/:hashid
+  # PATCH /v1/projects/:hashid
+  def update
+    if @directory_file.update(directory_file_params)
+      render json: @directory_file.to_json, status: :ok
+    else
+      render json: { errors: @directory_file.errors.messages },
+             status: :unprocessable_entity
+    end
+  end
+
   private
+
+  def directory_file_params
+    params.require(:directory_file)
+      .permit(:directory_id, :filename, :display_date, :tag_list, :tag_list => [])
+  end
+
+  def find_directory_file!
+    @directory_file = DirectoryFile.find(params[:id])
+  end
 
   def find_project!
     @project = Project.find(params[:project_id])

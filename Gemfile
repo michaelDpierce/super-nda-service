@@ -17,6 +17,8 @@ gem 'pg_search', '2.3.6'
 gem 'pg', '1.5.4'
 gem 'rack-cors', '2.0.1'
 gem 'rails', '7.1.2'
+gem 'acts-as-taggable-on', '10.0.0'
+gem 'sidekiq', '7.0.3'
 
 group :development do
   gem 'puma', '6.4.1'

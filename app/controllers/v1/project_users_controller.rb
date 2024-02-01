@@ -3,17 +3,17 @@
 # =============================================================================
 
 class V1::ProjectUsersController < V1::BaseController
+  before_action :load_project!, only: [:index, :create]
   before_action :find_project_user, only: %i[update destroy toggle_pinned]
 
+   # GET /v1/projects/:hashid/project_users
   def index
-    project_ids = @current_user.projects_with_access.pluck(:project_id)
-
-    @resource = Project.where(id: project_ids)
-
-    render_resource(
-      @resource,
-      ProjectsSerializer,
-      {}
+    render(
+      json:
+        ProjectUsersSerializer.new(
+          @project.project_users, includes: :user
+        ).serialized_json,
+      status: :ok
     )
   end
 
@@ -102,6 +102,10 @@ class V1::ProjectUsersController < V1::BaseController
   # end
 
   private
+
+  def load_project!
+    @project = Project.find(params[:project_id])
+  end
 
   def find_project_user
     @project_user = ProjectUser.find(params[:id])

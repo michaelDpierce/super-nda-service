@@ -18,7 +18,22 @@ class ProjectFolderService
   def build_directory
     directory = @project.directories.find(@directory_id)
 
-    records     = Array.new
+    if directory.has_parent? == true
+      records =  [
+        {
+          hashid: directory&.parent_id,
+          key: "folder-#{directory.hashid}",
+          name: "..",
+          date: nil,
+          ableToView: false,
+          extension: '-',
+          type: 'folder'
+        }
+      ]
+    else
+      records = Array.new
+    end
+
     breadcrumbs = Array.new
 
     child_ids   = directory.child_ids
@@ -52,11 +67,12 @@ class ProjectFolderService
           hashid: df.hashid,
           key: "file-#{df.hashid}",
           name: df.filename.to_s,
-          # date: d&.display_date,
+          date: df&.display_date,
           ableToView: true,
-          # extension: df.file.filename.extension_with_delimiter,
+          extension: df&.file&.blob&.filename&.extension,
           type: 'file',
-          url: Rails.application.routes.url_helpers.rails_blob_path(df.file, only_path: true)
+          url: Rails.application.routes.url_helpers.rails_blob_path(df.file, only_path: true),
+          tags: df.tag_list
         }
       )
     end

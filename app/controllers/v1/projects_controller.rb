@@ -4,10 +4,10 @@
 
 class V1::ProjectsController < V1::BaseController
   before_action :find_project,
-    only: %i[show update destroy folder remove_supporting_document]
+    only: %i[show update destroy folder remove_supporting_document tags]
 
   before_action :find_project_user,
-    only: %i[show update destroy folder remove_supporting_document]
+    only: %i[show update destroy folder remove_supporting_document tags]
 
   # GET /v1/projects
   def index
@@ -155,6 +155,18 @@ class V1::ProjectsController < V1::BaseController
       ProjectFolderService.new(@project, directory_id, @current_user)
       
     render(json: { data: service.data })
+  end
+
+  # GET /v1/projects/:hashid/tags
+  def tags
+    directory_file_ids = @project.directory_files.pluck(:id)
+
+    tag_list = ActsAsTaggableOn::Tag.joins(:taggings)
+      .where(taggings: { taggable_id: directory_file_ids, taggable_type: 'DirectoryFile' })
+      .select('distinct tags.name')
+      .pluck(:name)
+        
+    render(json: { data: tag_list })
   end
 
   private

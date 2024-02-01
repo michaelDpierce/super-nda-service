@@ -5,6 +5,8 @@
 class DirectoryFile < ApplicationRecord
   include Hashid::Rails
 
+  acts_as_taggable_on :tags
+
   belongs_to :directory
   belongs_to :user
 
