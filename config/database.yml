@@ -5,7 +5,11 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  pool: <%= ENV.fetch('RAILS_MAX_THREADS') { 15 } %>
+  pool: <%= ENV.fetch('RAILS_MAX_THREADS') { 10 } %>
+  host: <%= ENV['DATABASE_HOST'] || 'localhost' %>
+  port: <%= ENV['DATABASE_PORT'] || 5432 %>
+  username: <%= ENV['DATABASE_USERNAME'] || '' %>
+  password: <%= ENV['DATABASE_PASSWORD'] || '' %>
 
 development:
   <<: *default
@@ -20,11 +24,18 @@ production:
   database: <%= ENV['DATABASE_NAME'] %>
   username: <%= ENV['DATABASE_USERNAME'] %>
   password: <%= ENV['DATABASE_PASSWORD'] %>
+  sslmode: 'require'
+  sslca: <%= ENV['DATABASE_SSL_CA_PATH'] %>
+  connect_timeout: 2
+  checkout_timeout: 5
+  variables:
+    statement_timeout: 5000 # ms
 
-# production:
-#   sslmode: 'require'
-#   sslca: <%= ENV['DATABASE_SSL_CA_PATH'] %>
-#   connect_timeout: 2
-#   checkout_timeout: 5
-#   variables:
-#     statement_timeout: 5000 # ms
+
+production:
+  <<: *default
+  database: <%= ENV['DATABASE_NAME'] %>
+  port: <%= ENV['DATABASE_PORT'] || 25061 %>
+  pool: <%= ENV['DB_POOL'] || ENV['RAILS_MAX_THREADS'] || 15 %>
+  sslmode: 'require'
+  sslca: <%= ENV['SSL_CA_CERT_PATH'] %>
