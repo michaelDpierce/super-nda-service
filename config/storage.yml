@@ -19,8 +19,8 @@ local:
 
 digitalocean:
   service: S3
-  endpoint: https://your-spaces-endpoint-here
-  access_key_id: <%= Rails.application.credentials.dig(:digitalocean, :access_key) %>
-  secret_access_key: <%= Rails.application.credentials.dig(:digitalocean, :secret) %>
-  bucket: your-space-name-here
+  endpoint: https://minute-book-prod.nyc3.digitaloceanspaces.com
+  access_key_id: <%= ENV['DIGITAL_OCEAN_ACCESS_KEY_ID'] %>
+  secret_access_key: <%= ENV['DIGITAL_OCEAN_SECRET_ACCESS_KEY'] %>
+  bucket: 'minute-book-prod'
   region: unused
