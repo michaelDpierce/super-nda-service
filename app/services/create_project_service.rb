@@ -32,7 +32,8 @@ class CreateProjectService
       end
     end
   rescue StandardError => err
-    puts err.inspect
+    Rails.logger.info err.inspect
+    
     @status = :unprocessable_entity
   end
 

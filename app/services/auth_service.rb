@@ -26,7 +26,7 @@ class AuthService
       @user.last_login = Time.now
       @user.save!
 
-      built_result
+      @user
     end
   rescue StandardError
     @status = :unprocessable_entity
@@ -35,7 +35,7 @@ class AuthService
   private
 
   def find_user_by_source(data)
-    puts data
+    Rails.logger.info data
 
     user = User.find_by(source_id: data['id'])
 
@@ -48,7 +48,7 @@ class AuthService
       end
     end
 
-    puts 'user already exists'
+    Rails.logger.info 'user already exists'
 
     return user
   end
@@ -93,13 +93,5 @@ class AuthService
       last_name: data['last_name'],
       source_id: data['id']
     )
-  end
-
-  def built_result
-    @result = {
-      userId: @user.hashid,
-      rawUserId: @user.id,
-      appAdmin: @user.app_admin
-    }
   end
 end
