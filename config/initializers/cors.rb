@@ -7,11 +7,11 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     origins [
       '127.0.0.1',
       'localhost:3000',
-      'minutesbyminutes.com',
-      'app.minutesbyminutes.com',
-      'https://minutesbyminutes.com',
-      'https://app.minutesbyminutes.com',
-      'https://www.minutesbyminutes.com',
+      'mins4mins.com',
+      'app.mins4mins.com',
+      'https://mins4mins.com',
+      'https://app.mins4mins.com',
+      'https://www.mins4mins.com',
     ]
 
     resource '*',
