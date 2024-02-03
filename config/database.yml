@@ -28,5 +28,3 @@ production:
   pool: <%= ENV['DB_POOL'] || ENV['RAILS_MAX_THREADS'] || 10 %>
   sslmode: 'require'
   sslca: '/config/certs/prod.crt'
-
-
