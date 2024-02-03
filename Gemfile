@@ -20,7 +20,8 @@ gem 'pg', '1.5.4'
 gem 'rack-cors', '2.0.1'
 gem 'rails', '7.1.2'
 gem 'sidekiq', '7.2.1'
-gem 'pdf-reader'
+gem 'pdf-reader', '2.12.0'
+gem 'docx', '0.8.0'
 
 group :development do
   gem 'puma', '6.4.1'
