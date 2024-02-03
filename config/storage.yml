@@ -22,5 +22,5 @@ digitalocean:
   endpoint: https://minute-book-prod.nyc3.digitaloceanspaces.com
   access_key_id: <%= ENV['DIGITAL_OCEAN_ACCESS_KEY_ID'] %>
   secret_access_key: <%= ENV['DIGITAL_OCEAN_SECRET_ACCESS_KEY'] %>
-  bucket: 'minute-book-prod'
+  bucket: minute-book-prod
   region: unused

@@ -15,5 +15,3 @@ class PinnedProjectsSerializer < ApplicationSerializer
     nil
   end
 end 
-
-
