@@ -16,7 +16,10 @@ class V1::DirectoryFilesController < V1::BaseController
             directory_id: @directory.id,
             project_id: @project.id,
             user_id: @current_user.id,
-            filename: file.original_filename
+            filename: file.original_filename,
+            created_at: Time.now,
+            updated_at: Time.now,
+            display_date: Time.now
           )
 
         directory_file.file.attach(file)

@@ -12,8 +12,10 @@ module TimezoneHandler
   private
 
   def set_timezone
-    timezone = load_timezone
+    # timezone = load_timezone
     timezone = 'Eastern Time (US & Canada)' if timezone.blank?
+
+    puts @current_user.attributes
 
     if @current_user && @current_user.timezone != timezone
       @current_user.timezone = timezone
@@ -25,13 +27,13 @@ module TimezoneHandler
     yield
   end
 
-  def load_timezone
-    timezone_name = request.headers['Timezone']&.split(' ')&.last
-    return timezone_name if timezone_name.present?
+  # def load_timezone
+  #   timezone_name = request.headers['Timezone']&.split(' ')&.last
+  #   return timezone_name if timezone_name.present?
 
-    timezone_offset = request.headers['TimezoneOffset']&.split(' ')&.last
-    return if timezone_offset.blank?
+  #   timezone_offset = request.headers['TimezoneOffset']&.split(' ')&.last
+  #   return if timezone_offset.blank?
 
-    ActiveSupport::TimeZone[-timezone_offset.to_i.minutes]&.name
-  end
+  #   ActiveSupport::TimeZone[-timezone_offset.to_i.minutes]&.name
+  # end
 end
