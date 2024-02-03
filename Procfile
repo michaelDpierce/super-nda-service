@@ -1,1 +1,1 @@
-worker: bundle exec sidekiq -e $RAILS_ENV -C config/sidekiq.yml -i {{UNIQUE_INT}}
+worker: bundle exec sidekiq -e $RAILS_ENV -C config/sidekiq.yml
