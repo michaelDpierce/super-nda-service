@@ -1,9 +1,12 @@
 # ==============================================================================
 # Copyright 2024, MinuteBook. All rights reserved.
 # ==============================================================================
+require 'sidekiq/web'
 
 Rails.application.routes.draw do
   root 'home#welcome'
+
+  mount Sidekiq::Web => '/sidekiq'
 
   namespace :v1, defaults: { format: :json } do
     resources :auth, only: :create

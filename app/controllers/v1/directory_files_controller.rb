@@ -21,6 +21,8 @@ class V1::DirectoryFilesController < V1::BaseController
 
         directory_file.file.attach(file)
         directory_file.save!
+
+        MetaDataJob.perform_async(directory_file.try(:id), @current_user.id)
       end
 
       render json: { message: "Success" }, status: :ok
