@@ -62,6 +62,12 @@ class ProjectFolderService
     directory_files = directory.directory_files
 
     directory_files.each do |df|
+      url = if Rails.env.development?
+        Rails.application.routes.url_helpers.rails_blob_path(df.file, only_path: true)
+      else
+        df.file.blob.service_url(expires_in: 5.minutes, disposition: "attachment")
+      end
+
       records.push(
         {
           hashid: df.hashid,
@@ -71,7 +77,7 @@ class ProjectFolderService
           ableToView: true,
           extension: df&.file&.blob&.filename&.extension,
           type: 'file',
-          url: Rails.application.routes.url_helpers.rails_blob_path(df.file, only_path: true),
+          url: url,
           tags: df.tag_list
         }
       )
