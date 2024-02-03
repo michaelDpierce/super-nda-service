@@ -12,8 +12,8 @@ local:
 
 digitalocean:
   service: S3
-  endpoint: <%= DIGITAL_OCEAN_ENDPOINT %>
+  endpoint: <%= ENV['DIGITAL_OCEAN_ENDPOINT'] %>
   access_key_id: <%= ENV['DIGITAL_OCEAN_ACCESS_KEY_ID'] %>
   secret_access_key: <%= ENV['DIGITAL_OCEAN_SECRET_ACCESS_KEY'] %>
-  bucket: <%= DIGITAL_OCEAN_BUCKET %>
-  region: <%= DIGITAL_OCEAN_REGION %>
+  bucket: <%= ENV['DIGITAL_OCEAN_BUCKET'] %>
+  region: <%= ENV['DIGITAL_OCEAN_REGION'] %>
