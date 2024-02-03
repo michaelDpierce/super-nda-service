@@ -7,6 +7,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     origins [
       '127.0.0.1',
       'localhost:3000',
+      'http://localhost:3000',
       'mins4mins.com',
       'app.mins4mins.com',
       'https://mins4mins.com',
