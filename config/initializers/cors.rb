@@ -12,6 +12,8 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       'https://mins4mins.com',
       'https://app.mins4mins.com',
       'https://www.mins4mins.com',
+      'minute-book-prod.nyc3.digitaloceanspaces.com',
+      'https://minute-book-prod.nyc3.digitaloceanspaces.com'
     ]
 
     resource '*',
