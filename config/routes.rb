@@ -3,6 +3,9 @@
 # ==============================================================================
 require 'sidekiq/web'
 
+Sidekiq::Web.use ActionDispatch::Cookies
+Sidekiq::Web.use ActionDispatch::Session::CookieStore, key: '_mb_session'
+
 Rails.application.routes.draw do
   root 'home#welcome'
 
