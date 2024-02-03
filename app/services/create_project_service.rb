@@ -33,7 +33,7 @@ class CreateProjectService
     end
   rescue StandardError => err
     Rails.logger.info err.inspect
-    
+
     @status = :unprocessable_entity
   end
 
@@ -52,7 +52,7 @@ class CreateProjectService
     Directory
       .create!(
         user_id: @user.id,
-        slug: Directory::ROOT_SLUG,
+        slug: ROOT_SLUG,
         project_id: @project.id,
         name: @project.name
       )
