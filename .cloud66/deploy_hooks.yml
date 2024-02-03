@@ -1,0 +1,5 @@
+production:
+  last_thing:
+    - command: sudo apt-get update && sudo apt-get install -y poppler-utils
+      target: any 
+      execute: true
