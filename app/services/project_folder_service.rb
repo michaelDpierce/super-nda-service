@@ -65,7 +65,7 @@ class ProjectFolderService
       url = if Rails.env.development?
         Rails.application.routes.url_helpers.rails_blob_path(df.file, only_path: true)
       else
-        df.file.blob.service_url(expires_in: 5.minutes, disposition: "attachment")
+        df.file.url(expires_in: 5.seconds)
       end
 
       records.push(
