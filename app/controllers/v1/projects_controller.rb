@@ -6,10 +6,10 @@ require 'csv'
 
 class V1::ProjectsController < V1::BaseController
   before_action :find_project,
-    only: %i[show update destroy folder remove_supporting_document tags]
+    only: %i[show update destroy folder remove_supporting_document tags export]
 
   before_action :find_project_user,
-    only: %i[show update destroy folder remove_supporting_document tags]
+    only: %i[show update destroy folder remove_supporting_document tags export]
 
   # GET /v1/projects
   def index
@@ -173,10 +173,33 @@ class V1::ProjectsController < V1::BaseController
 
   # GET /v1/projects/:hashid/export
   def export
+    dfs = @project.directory_files
+
     data = CSV.generate(headers: true) do |csv|
-      csv << ["Column 1", "Column 2", "Column 3"]
-      # Populate CSV data
-      csv << ["Data 1", "Data 2", "Data 3"]
+      csv << [
+        'ID',
+        'Name',
+        'Directory',
+        'Created At',
+        'Updated At',
+        'Date',
+        'Uploaded By',
+        'Tags'
+      ]
+
+      dfs.each do |df|
+        csv << [
+          df.id,
+          df.filename,
+          df.directory.try(:name),
+          df.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          df.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          df.display_date.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          df.user.try(:email),
+          df.tag_list.join(', ').to_s
+
+        ]
+      end
     end
 
     send_data data, filename: "report.csv", type: "text/csv"
