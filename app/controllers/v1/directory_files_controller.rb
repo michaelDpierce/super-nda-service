@@ -28,7 +28,7 @@ class V1::DirectoryFilesController < V1::BaseController
         MetaDataJob.perform_async(directory_file.try(:id), @current_user.id)
       end
 
-      render json: { message: "Success" }, status: :ok
+      render json: { message: 'Success' }, status: :ok
     else
       render json: { message: 'Failure' }, status: :bad_request
     end
@@ -39,6 +39,7 @@ class V1::DirectoryFilesController < V1::BaseController
   def update
     if @directory_file.update(directory_file_params)
       render json: @directory_file.to_json, status: :ok
+      # Render JSON that matches record model
     else
       render json: { errors: @directory_file.errors.messages },
              status: :unprocessable_entity
