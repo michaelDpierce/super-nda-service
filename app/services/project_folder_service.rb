@@ -63,7 +63,10 @@ class ProjectFolderService
 
     directory_files.each do |df|
       url = if Rails.env.development?
-        Rails.application.routes.url_helpers.rails_blob_path(df.file, only_path: true)
+        Rails.application.routes.url_helpers.rails_blob_url(
+          df.file,
+          host: 'http://localhost:3001'
+        )
       else
         df.file.url(expires_in: 60.minutes)
       end
