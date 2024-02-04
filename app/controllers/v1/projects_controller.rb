@@ -2,6 +2,8 @@
 # Copyright 2024, MinuteBook. All rights reserved.
 # =============================================================================
 
+require 'csv'
+
 class V1::ProjectsController < V1::BaseController
   before_action :find_project,
     only: %i[show update destroy folder remove_supporting_document tags]
@@ -167,6 +169,17 @@ class V1::ProjectsController < V1::BaseController
       .pluck(:name)
         
     render(json: { data: tag_list })
+  end
+
+  # GET /v1/projects/:hashid/export
+  def export
+    data = CSV.generate(headers: true) do |csv|
+      csv << ["Column 1", "Column 2", "Column 3"]
+      # Populate CSV data
+      csv << ["Data 1", "Data 2", "Data 3"]
+    end
+
+    send_data data, filename: "report.csv", type: "text/csv"
   end
 
   private

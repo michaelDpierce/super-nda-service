@@ -28,6 +28,7 @@ Rails.application.routes.draw do
     match '/projects/:id/folder', to: 'projects#folder', via: 'get'
     match '/projects/:id/remove_supporting_document/:document_id', to: 'projects#remove_supporting_document', via: 'delete'
     match '/projects/:id/tags', to: 'projects#tags', via: 'get'
+    match '/projects/:id/export', to: 'projects#export', via: 'get'
 
     resources :project_users, only: %i[index create update destroy] do
       put :pinned, to: 'project_users#toggle_pinned', on: :member
