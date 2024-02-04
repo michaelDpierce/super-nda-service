@@ -3,13 +3,15 @@
 # =============================================================================
 
 class V1::DirectoryFilesController < V1::BaseController
-  before_action :find_directory_file!, only: %i[update]
+  before_action :find_directory_file!, only: %i[update destroy]
   before_action :find_project!, only: %i[upload]
   before_action :find_directory!, only: %i[upload]
 
   # POST /v1/upload
   def upload
     if params[:files]
+      records = Array.new
+
       params[:files].each do |file|
         directory_file =
           DirectoryFile.new(
@@ -25,10 +27,12 @@ class V1::DirectoryFilesController < V1::BaseController
         directory_file.file.attach(file)
         directory_file.save!
 
+        records.push(format_file(directory_file))
+
         MetaDataJob.perform_async(directory_file.try(:id), @current_user.id)
       end
 
-      render json: { message: 'Success' }, status: :ok
+      render json: { data: records, message: 'Success' }, status: :ok
     else
       render json: { message: 'Failure' }, status: :bad_request
     end
@@ -44,6 +48,11 @@ class V1::DirectoryFilesController < V1::BaseController
       render json: { errors: @directory_file.errors.messages },
              status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    @directory_file.destroy!
+    head(:no_content)
   end
 
   private
@@ -63,5 +72,32 @@ class V1::DirectoryFilesController < V1::BaseController
 
   def find_directory!
     @directory = Directory.find(params[:directory_id])
+  end
+
+  def format_file(record)
+    filename = record.filename.to_s 
+    extension = File.extname(filename).to_s
+    clean_filename = File.basename(filename, extension).to_s
+
+    url = if Rails.env.development?
+      Rails.application.routes.url_helpers.rails_blob_url(
+        record.file,
+        host: 'http://localhost:3001'
+      )
+    else
+      record.file.url(expires_in: 60.minutes)
+    end
+
+    {
+      hashid: record.hashid,
+      key: "file-#{record.hashid}",
+      name: filename,
+      cleanFilename: clean_filename,
+      date: record.try(:display_date),
+      extension: extension,
+      type: 'file',
+      url: url,
+      tags: []
+    }
   end
 end

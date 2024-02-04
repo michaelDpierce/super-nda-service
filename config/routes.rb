@@ -25,6 +25,7 @@ Rails.application.routes.draw do
 
     get :pinned_projects, to: 'projects#pinned'
     get :search, to: 'projects#search'
+    
     match '/projects/:id/folder', to: 'projects#folder', via: 'get'
     match '/projects/:id/remove_supporting_document/:document_id', to: 'projects#remove_supporting_document', via: 'delete'
     match '/projects/:id/tags', to: 'projects#tags', via: 'get'

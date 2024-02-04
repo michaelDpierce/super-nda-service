@@ -25,7 +25,6 @@ class ProjectFolderService
           key: "folder-#{directory.hashid}",
           name: "..",
           date: nil,
-          ableToView: false,
           extension: '-',
           type: 'folder'
         }
@@ -52,7 +51,6 @@ class ProjectFolderService
           key: "folder-#{d.hashid}",
           name: d.name.to_s,
           date: d&.display_date,
-          ableToView: false,
           extension: '-',
           type: 'folder'
         }
@@ -82,7 +80,6 @@ class ProjectFolderService
           name: filename,
           cleanFilename: cleanFilename,
           date: df&.display_date,
-          ableToView: true,
           extension: extension,
           type: 'file',
           url: url,
