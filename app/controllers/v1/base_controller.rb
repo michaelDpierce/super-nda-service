@@ -5,7 +5,7 @@
 class V1::BaseController < ApplicationController
   include ApiExceptionHandler
   include VerificationUserConcern
-  include TimezoneHandler
+  # include TimezoneHandler
   include HelperConcern
   # include ActiveStorage::SetCurrent
 

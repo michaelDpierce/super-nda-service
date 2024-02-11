@@ -14,9 +14,7 @@ module TimezoneHandler
   def set_timezone
     # timezone = load_timezone
     timezone = 'Eastern Time (US & Canada)' if timezone.blank?
-
-    puts @current_user.attributes
-
+    
     if @current_user && @current_user.timezone != timezone
       @current_user.timezone = timezone
       @current_user.save(validate: false)

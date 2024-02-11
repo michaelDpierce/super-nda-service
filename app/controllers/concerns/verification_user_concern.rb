@@ -19,25 +19,16 @@ module VerificationUserConcern
 
   private
 
-  def authenticate_request!
+  def authenticate_request!    
     return head(:unauthorized) if token.nil?
     sdk = Clerk::SDK.new
     payout = sdk.decode_token(token)
 
-    user = User.find_by(source_id: payout['sub'])
+    @current_user = User.find_by!(source_id: payout['sub'])
 
-    @current_user =
-      if user
-        user
-      else
-        Rails.logger.info "User Not Found: #{payout['sub']}"
-
-        service = AuthService.new
-        service.find_or_create_user_by(token: token, ip: request&.remote_ip)
-        service.result
-      end
-        
     Current.user = @current_user
+
+    LastLoginJob.perform_async(@current_user.id) if @current_user.present?
 
     head(:unauthorized) if @current_user.nil?
   end

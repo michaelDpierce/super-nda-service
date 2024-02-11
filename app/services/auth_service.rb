@@ -23,10 +23,7 @@ class AuthService
     @user = create_user_by_source(user_data) if @user.nil?
 
     if @user.present?
-      @user.last_login = Time.now
-      @user.save!
-
-      @user
+      return @user
     end
   rescue StandardError
     @status = :unprocessable_entity
