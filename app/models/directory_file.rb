@@ -20,4 +20,8 @@ class DirectoryFile < ApplicationRecord
   def docx_file?
     file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   end
+
+  def pdf_file?
+    file.content_type == 'application/pdf'
+  end  
 end

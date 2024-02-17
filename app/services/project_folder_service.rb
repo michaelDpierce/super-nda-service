@@ -69,6 +69,15 @@ class ProjectFolderService
         df.file.url(expires_in: 60.minutes)
       end
 
+      converted_file_url = if Rails.env.development?
+        Rails.application.routes.url_helpers.rails_blob_url(
+          df.converted_file,
+          host: 'http://localhost:3001'
+        )
+      else
+        df.converted_file.url(expires_in: 60.minutes)
+      end
+
       filename = df.filename.to_s 
       extension = File.extname(filename).to_s
       cleanFilename = File.basename(filename, extension).to_s
@@ -78,12 +87,17 @@ class ProjectFolderService
           hashid: df.hashid,
           key: "file-#{df.hashid}",
           name: filename,
+          convertedFilename: df.converted_file.filename.to_s,
           cleanFilename: cleanFilename,
           date: df&.display_date,
           extension: extension,
           type: 'file',
           url: url,
-          tags: df.tag_list
+          convertedFileUrl: converted_file_url,
+          tags: df.tag_list,
+          supported: df.docx_file? || df.pdf_file?,
+          conversionStatus: df.conversion_status,
+          convertedFile: df.converted_file.attached?          
         }
       )
     end

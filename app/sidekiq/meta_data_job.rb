@@ -16,6 +16,8 @@ class MetaDataJob
     df = DirectoryFile.find(directory_file_id)
     blob = df.file.blob
 
+    update_conversion_status(df)
+
     if blob.present?
       Rails.logger.info "Creating Tempfile for Blob: #{blob.filename}"
 
@@ -73,6 +75,12 @@ class MetaDataJob
       else
         Rails.logger.info 'Unsupported File Type'
       end
+    end
+  end
+
+  def update_conversion_status(df)
+    unless df.docx_file?
+      df.update(conversion_status: :not_supported)
     end
   end
 end

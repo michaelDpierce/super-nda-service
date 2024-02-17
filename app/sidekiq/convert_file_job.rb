@@ -16,7 +16,7 @@ class ConvertFileJob
 
     directory_file.update!(conversion_status: :in_progress)
 
-    converted_temp_file = convert_to_pdf(directory_file.file)
+    converted_temp_file = convert_to_pdf(directory_file)
     Rails.logger.info "Converted file: #{converted_temp_file.path}"
 
     directory_file.converted_file.attach(
@@ -30,18 +30,20 @@ class ConvertFileJob
 
     clean_tempfile(converted_temp_file)
     directory_file.update!(conversion_status: :completed)
-  # rescue StandardError => e
-  #   Rails.logger.error "Error converting file: #{e.message}"
-  #   directory_file.update!(conversion_status: :failed)
   end
 
   private
 
-  def convert_to_pdf(file)    
-    download_blob_to_tempfile(file) do |tempfile|
-      result = ConvertApi.convert('pdf', { File: tempfile.path })
-      download_path = result.file.save(tempfile.path.sub('.docx', '.pdf'))
-      File.new(download_path)
+  def convert_to_pdf(df)    
+    begin
+      download_blob_to_tempfile(df.file) do |tempfile|
+        result = ConvertApi.convert('pdf', { File: tempfile.path })
+        download_path = result.file.save(tempfile.path.sub('.docx', '.pdf'))
+        File.new(download_path)
+      end
+    rescue ConvertApi::ConvertApiError => e
+      Rails.logger.error "Error converting file: #{e.message}"
+      df.update!(conversion_status: :failed)
     end
   end
 
