@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_02_03_171137) do
+ActiveRecord::Schema[7.1].define(version: 2024_02_17_192913) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -68,6 +68,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_03_171137) do
     t.datetime "updated_at", precision: nil
     t.datetime "display_date", precision: nil
     t.text "content"
+    t.integer "conversion_status", default: 0
     t.index ["blob_id"], name: "index_directory_files_on_blob_id"
     t.index ["directory_id"], name: "index_directory_files_on_directory_id"
   end

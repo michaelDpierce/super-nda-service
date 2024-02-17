@@ -30,6 +30,10 @@ class V1::DirectoryFilesController < V1::BaseController
         records.push(format_file(directory_file))
 
         MetaDataJob.perform_async(directory_file.try(:id), @current_user.id)
+
+        if directory_file.docx_file?
+          ConvertFileJob.perform_async(directory_file.try(:id), @current_user.id)
+        end
       end
 
       render json: { data: records, message: 'Success' }, status: :ok

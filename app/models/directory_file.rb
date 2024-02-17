@@ -11,5 +11,13 @@ class DirectoryFile < ApplicationRecord
   belongs_to :user
 
   has_one_attached :file
+  has_one_attached :converted_file
+
   has_one :project, through: :directory, source: :project
+
+  enum conversion_status: { pending: 0, in_progress: 1, completed: 2, failed: 3, not_supported: 4 }
+
+  def docx_file?
+    file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  end
 end
