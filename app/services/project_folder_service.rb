@@ -97,7 +97,8 @@ class ProjectFolderService
           tags: df.tag_list,
           supported: df.docx_file? || df.pdf_file?,
           conversionStatus: df.conversion_status,
-          convertedFile: df.converted_file.attached?          
+          convertedFile: df.converted_file.attached?,
+          committee: df.committee 
         }
       )
     end

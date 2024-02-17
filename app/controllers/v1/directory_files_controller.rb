@@ -63,7 +63,8 @@ class V1::DirectoryFilesController < V1::BaseController
 
   def directory_file_params
     params.require(:directory_file)
-      .permit(:directory_id, :filename, :display_date, :tag_list, :tag_list => [])
+      .permit(:directory_id, :filename, :display_date, :committee,
+              :tag_list, :tag_list => [])
   end
 
   def find_directory_file!
@@ -101,7 +102,8 @@ class V1::DirectoryFilesController < V1::BaseController
       extension: extension,
       type: 'file',
       url: url,
-      tags: []
+      tags: [],
+      committee: nil,
     }
   end
 end
