@@ -22,6 +22,7 @@ Rails.application.routes.draw do
 
     resources :directory_files
     match '/upload', to: 'directory_files#upload', via: 'post'
+    match '/directory_files/:id/analyze', to: 'directory_files#analyze', via: 'get'
 
     get :pinned_projects, to: 'projects#pinned'
     get :search, to: 'projects#search'
