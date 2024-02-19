@@ -15,31 +15,17 @@ class V1::ProjectsController < V1::BaseController
   def index
     base_filtering!
 
-    if params[:pinned].present?
-      project_ids =
-        ProjectUser.where(user_id: @current_user.id, pinned: true)
-          .pluck(:project_id)
+    project_ids =
+      ProjectUser.where(user_id: @current_user.id)
+        .pluck(:project_id)
 
-      @resource = @resource.where(id: project_ids)
+    @resource = @resource.where(id: project_ids)
 
-      render_resource(
-        @resource,
-        DashboardSerializer,
-        params: { user_id: @current_user.id }
-      )
-    else
-      project_ids =
-        ProjectUser.where(user_id: @current_user.id)
-          .pluck(:project_id)
-
-      @resource = @resource.where(id: project_ids)
-
-      render_resource(
-        @resource,
-        ProjectsSerializer,
-        {}
-      )
-    end
+    render_resource(
+      @resource,
+      ProjectsSerializer,
+      {}
+    )
   end
 
   # GET /v1/pinned
@@ -50,7 +36,7 @@ class V1::ProjectsController < V1::BaseController
       ProjectUser.where(user_id: @current_user.id, pinned: true)
         .pluck(:project_id)
 
-    @resource = @resource.where(id: project_ids)
+    @resource = @resource.where(id: project_ids).where(status: 'active')
 
     render_resource(
       @resource,
