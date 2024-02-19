@@ -43,7 +43,7 @@ class AnalyzeMeetingMinutesJob
   end
 
   def extract_display_date
-    question = 'Return only the datetime of this meeting in Rails UTC ISO 8601 format. If there is only a date format that, but if there is a date and a time format that.'
+    question = 'Return onlt the data and time of this meeting in ISO 8601 format in UTC. If there is not a time, return only the date, and if there is not a date or time return nil.'
     
     prompt = <<~PROMPT
       #{@content}
@@ -66,7 +66,7 @@ class AnalyzeMeetingMinutesJob
   end
 
   def extract_location
-    question = 'Return only the location of the meeting and format as an address if it is one and otherwise format N/A.'
+    question = 'Return only the address for this meeting but format the address as [Street Address], [City], [State/Province/Region], [Postal Code], [Two Digit Country Code, e.g. US]. If there is no address, return N/A.'
     
     prompt = <<~PROMPT
       #{@content}

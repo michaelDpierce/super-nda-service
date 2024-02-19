@@ -84,8 +84,7 @@ class V1::ProjectsController < V1::BaseController
           project_user_id: @project_user.try(:hashid),
           status: @project.try(:status),
           pinned: @project_user.try(:pinned)
-        },
-        documents: @project.documents 
+        }
       },
     }
 
@@ -125,13 +124,6 @@ class V1::ProjectsController < V1::BaseController
   def destroy    
     @project.destroy!
     head(:no_content)
-  end
-
-  # DELETE /v1/projects/:hashid/remove_supporting_document/:document_id
-  def remove_supporting_document
-    attachment = @project.documents.find(params[:document_id])
-    attachment.purge # or use purge_later
-    head(:ok)
   end
 
   # GET /v1/search
@@ -227,7 +219,7 @@ class V1::ProjectsController < V1::BaseController
   def update_project_params
     params
       .require(:project)
-      .permit(:name, :description, :logo, :status, documents: [])
+      .permit(:name, :description, :logo, :status)
       .select { |x,v| v.present? }
   end
 

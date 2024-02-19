@@ -20,8 +20,10 @@ class Project < ApplicationRecord
 
   has_many :project_users, dependent: :destroy_async
   has_many :users, through: :project_users
+  
   has_many :project_users_with_access, -> { with_access }, class_name: 'ProjectUser'
   has_many :users_with_access, source: :user, through: :project_users_with_access
+
   has_many :admin_project_users, -> { with_admin }, class_name: 'ProjectUser'
   has_many :admin_users, source: :user, through: :admin_project_users
 
@@ -30,7 +32,6 @@ class Project < ApplicationRecord
   has_many :directory_files, through: :directories
 
   has_one_attached :logo, dependent: :destroy_async
-  has_many_attached :documents, dependent: :destroy_async
 
   enum status: {
     active: 0,

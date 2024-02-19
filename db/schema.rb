@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_02_18_203126) do
+ActiveRecord::Schema[7.1].define(version: 2024_02_19_180743) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -89,13 +89,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_18_203126) do
   create_table "project_users", force: :cascade do |t|
     t.integer "project_id"
     t.integer "user_id"
-    t.boolean "access", default: true
     t.boolean "admin", default: false
     t.boolean "pinned", default: true
     t.datetime "pinned_at", precision: nil
     t.datetime "last_viewed_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "role", default: 1
+    t.boolean "access", default: false
   end
 
   create_table "projects", force: :cascade do |t|
@@ -105,7 +106,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_18_203126) do
     t.integer "status", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "primary_color", default: "#1F1708"
   end
 
   create_table "taggings", force: :cascade do |t|
@@ -144,11 +144,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_18_203126) do
     t.string "timezone", default: "Eastern Time (US & Canada)"
     t.string "first_name"
     t.string "last_name"
-    t.boolean "app_admin", default: false
     t.string "source_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_login"
+    t.string "prefix"
+    t.string "title"
+    t.string "company"
+    t.string "company_role_type"
+    t.string "role"
+    t.string "prefixmatch"
+    t.string "fullname_match"
+    t.index ["email"], name: "index_users_on_email"
+    t.index ["fullname_match"], name: "index_users_on_fullname_match"
+    t.index ["prefixmatch"], name: "index_users_on_prefixmatch"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

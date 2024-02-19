@@ -3,7 +3,7 @@
 # =============================================================================
 
 class V1::DirectoryFilesController < V1::BaseController
-  before_action :find_directory_file!, only: %i[update destroy analyze]
+  before_action :find_directory_file!, only: %i[show update destroy analyze]
   before_action :find_project!, only: %i[upload]
   before_action :find_directory!, only: %i[upload]
 
@@ -40,6 +40,11 @@ class V1::DirectoryFilesController < V1::BaseController
     else
       render json: { message: 'Failure' }, status: :bad_request
     end
+  end
+
+  # PUGETT /v1/projects/:hashid
+  def show
+    render json: @directory_file.to_json, status: :ok
   end
 
   # PUT /v1/projects/:hashid

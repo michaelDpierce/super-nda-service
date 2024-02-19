@@ -7,7 +7,7 @@ class PinnedProjectsSerializer < ApplicationSerializer
   set_id :hashid
   set_type :project
 
-  attribute :name, :description, :primary_color
+  attribute :name, :description
 
   attribute :logo do |object|
     Rails.application.routes.url_helpers.rails_blob_url(object.logo) if object.logo.attached?

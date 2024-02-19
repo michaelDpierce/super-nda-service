@@ -5,6 +5,11 @@
 class ProjectUser < ApplicationRecord
   include Hashid::Rails
 
+  enum role: {
+    view: 1,
+    edit: 2,
+  }
+
   belongs_to :project
   belongs_to :user
 
