@@ -209,21 +209,28 @@ class V1::ProjectsController < V1::BaseController
   def create_project_user
     ActiveRecord::Base.transaction do
       email = params["data"]["email"]
-
+  
+      # Check if a ProjectUser already exists with the given user's email for this project
+      existing_project_user = ProjectUser.joins(:user).find_by(users: {email: email}, project_id: @project.id)
+      if existing_project_user.present?
+        # If a ProjectUser with the given email already exists, return an error
+        render(json: { error: 'A user with that email already exists in this project.' }, status: :unprocessable_entity)
+        return # Stop execution to ensure no further processing
+      end
+  
+      # Attempt to find an existing user by email or create a new one
       user = User.find_or_create_by!(email: email) do |user|
         user.first_name = params["data"]["firstName"]
         user.last_name = params["data"]["lastName"]
       end
     
-      project_user = ProjectUser.find_or_create_by!(user_id: user.id, project_id: @project.id) do |pu|
-        pu.pinned = true
-      end
-
+      # Create a new ProjectUser since we've confirmed one does not exist for this user and project
+      project_user = ProjectUser.create!(user_id: user.id, project_id: @project.id, pinned: true)
+  
       render(json: { data: project_user }, status: :created)
     end
-
-    rescue ActiveRecord::RecordInvalid => e
-      render(json: { message: e.message }, status: :unprocessable_entity)
+  rescue ActiveRecord::RecordInvalid => e
+    render(json: { error: e.message }, status: :unprocessable_entity)
   end
 
   # GET /v1/projects/:hashid/check_admin
