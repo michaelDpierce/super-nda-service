@@ -124,12 +124,17 @@ class V1::DirectoryFilesController < V1::BaseController
       key: "file-#{record.hashid}",
       name: filename,
       cleanFilename: clean_filename,
+      conversionStatus: record.conversion_status,
+      convertedFile: false,
+      convertedFileUrl: nil,
+      convertedFilename: "",
       date: record.try(:display_date),
       extension: extension,
       type: "file",
       url: url,
       tags: [],
       committee: nil,
+      supported: record.docx_file? || record.pdf_file?
     }
   end
 end
