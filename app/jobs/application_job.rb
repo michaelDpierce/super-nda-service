@@ -1,3 +1,7 @@
+# =============================================================================
+# Copyright 2024, MinuteBook. All rights reserved.
+# =============================================================================
+
 class ApplicationJob < ActiveJob::Base
   # Automatically retry jobs that encountered a deadlock
   # retry_on ActiveRecord::Deadlocked

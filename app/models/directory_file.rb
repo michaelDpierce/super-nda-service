@@ -18,10 +18,10 @@ class DirectoryFile < ApplicationRecord
   enum conversion_status: { pending: 0, in_progress: 1, completed: 2, failed: 3, not_supported: 4 }
 
   def docx_file?
-    file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   end
 
   def pdf_file?
-    file.content_type == 'application/pdf'
+    file.content_type == "application/pdf"
   end  
 end

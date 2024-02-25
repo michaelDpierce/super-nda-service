@@ -7,6 +7,7 @@ class ProjectFolderService
     @project      = project
     @directory_id = directory_id
     @current_user = current_user
+    @project_user = ProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
   end
 
   def data
@@ -21,12 +22,12 @@ class ProjectFolderService
     if directory.has_parent? == true
       records =  [
         {
-          hashid: directory&.parent_id,
+          hashid: Directory.find(directory&.parent_id).hashid,
           key: "folder-#{directory.hashid}",
           name: "..",
           date: nil,
-          extension: '-',
-          type: 'folder'
+          extension: "-",
+          type: "folder"
         }
       ]
     else
@@ -50,9 +51,9 @@ class ProjectFolderService
           hashid: d.hashid,
           key: "folder-#{d.hashid}",
           name: d.name.to_s,
-          date: d&.display_date,
-          extension: '-',
-          type: 'folder'
+          date: d&.created_at,
+          extension: "-",
+          type: "folder"
         }
       )
     end
@@ -63,19 +64,23 @@ class ProjectFolderService
       url = if Rails.env.development?
         Rails.application.routes.url_helpers.rails_blob_url(
           df.file,
-          host: 'http://localhost:3001'
+          host: "http://localhost:3001"
         )
       else
         df.file.url(expires_in: 60.minutes)
       end
 
-      converted_file_url = if Rails.env.development?
-        Rails.application.routes.url_helpers.rails_blob_url(
-          df.converted_file,
-          host: 'http://localhost:3001'
-        )
+      if df.converted_file.attached?
+        converted_file_url = if Rails.env.development?
+          Rails.application.routes.url_helpers.rails_blob_url(
+            df.converted_file,
+            host: "http://localhost:3001"
+          )
+        else
+          df.converted_file.url(expires_in: 60.minutes)
+        end
       else
-        df.converted_file.url(expires_in: 60.minutes)
+        converted_file_url = nil
       end
 
       filename = df.filename.to_s 
@@ -91,14 +96,14 @@ class ProjectFolderService
           cleanFilename: cleanFilename,
           date: df&.display_date,
           extension: extension,
-          type: 'file',
+          type: "file",
           url: url,
           convertedFileUrl: converted_file_url,
           tags: df.tag_list,
           supported: df.docx_file? || df.pdf_file?,
           conversionStatus: df.conversion_status,
           convertedFile: df.converted_file.attached?,
-          committee: df.committee 
+          committee: df.committee,
         }
       )
     end
@@ -114,10 +119,17 @@ class ProjectFolderService
       })
     end
 
+    sorted_records = records.sort_by do |record|
+      [record[:type] == "folder" ? 0 : 1, record[:name].downcase]
+    end
+
     {
       breadcrumbs: breadcrumbs,
-      records: records,
+      records: sorted_records,
       directoryID: directory.hashid,
+      permissions: {
+        admin: @project_user.admin,
+      }
     }
   end
 end

@@ -2,14 +2,34 @@
 # Copyright 2024, MinuteBook. All rights reserved.
 # =============================================================================
 
-require 'csv'
+require "csv"
 
 class V1::ProjectsController < V1::BaseController
   before_action :find_project,
-    only: %i[show update destroy folder remove_supporting_document tags export]
+    only: %i[
+      show
+      update
+      destroy
+      folder
+      remove_supporting_document
+      tags
+      export
+      create_project_user
+      check_admin
+    ]
 
   before_action :find_project_user,
-    only: %i[show update destroy folder remove_supporting_document tags export]
+    only: %i[
+      show
+      update
+      destroy
+      folder
+      remove_supporting_document
+      tags
+      export
+      create_project_user
+      check_admin
+    ]
 
   # GET /v1/projects
   def index
@@ -36,7 +56,7 @@ class V1::ProjectsController < V1::BaseController
       ProjectUser.where(user_id: @current_user.id, pinned: true)
         .pluck(:project_id)
 
-    @resource = @resource.where(id: project_ids).where(status: 'active')
+    @resource = @resource.where(id: project_ids).where(status: "active")
 
     render_resource(
       @resource,
@@ -75,9 +95,11 @@ class V1::ProjectsController < V1::BaseController
     }
 
     if @project.present?
+      LastViewedAtJob.perform_async(@project_user.id)
+
       render json: ProjectSerializer.new(@project, options).serialized_json
     else
-      render json: { message: 'Project not found' }, status: :not_found
+      render json: { message: "Project not found" }, status: :not_found
     end
   end
 
@@ -142,8 +164,8 @@ class V1::ProjectsController < V1::BaseController
     directory_file_ids = @project.directory_files.pluck(:id)
 
     tag_list = ActsAsTaggableOn::Tag.joins(:taggings)
-      .where(taggings: { taggable_id: directory_file_ids, taggable_type: 'DirectoryFile' })
-      .select('distinct tags.name')
+      .where(taggings: { taggable_id: directory_file_ids, taggable_type: "DirectoryFile" })
+      .select("distinct tags.name")
       .pluck(:name)
         
     render(json: { data: tag_list })
@@ -155,14 +177,14 @@ class V1::ProjectsController < V1::BaseController
 
     data = CSV.generate(headers: true) do |csv|
       csv << [
-        'ID',
-        'Name',
-        'Directory',
-        'Created At',
-        'Updated At',
-        'Date',
-        'Uploaded By',
-        'Tags'
+        "ID",
+        "Name",
+        "Directory",
+        "Created At",
+        "Updated At",
+        "Date",
+        "Uploaded By",
+        "Tags"
       ]
 
       dfs.each do |df|
@@ -174,13 +196,39 @@ class V1::ProjectsController < V1::BaseController
           df.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
           df.display_date.strftime("%Y-%m-%d %H:%M:%S %Z"),
           df.user.try(:email),
-          df.tag_list.join(', ').to_s
+          df.tag_list.join(", ").to_s
 
         ]
       end
     end
 
     send_data data, filename: "report.csv", type: "text/csv"
+  end
+
+  # POST /v1/projects/:hashid/create_project_user
+  def create_project_user
+    ActiveRecord::Base.transaction do
+      email = params["data"]["email"]
+
+      user = User.find_or_create_by!(email: email) do |user|
+        user.first_name = params["data"]["firstName"]
+        user.last_name = params["data"]["lastName"]
+      end
+    
+      project_user = ProjectUser.find_or_create_by!(user_id: user.id, project_id: @project.id) do |pu|
+        pu.pinned = true
+      end
+
+      render(json: { data: project_user }, status: :created)
+    end
+
+    rescue ActiveRecord::RecordInvalid => e
+      render(json: { message: e.message }, status: :unprocessable_entity)
+  end
+
+  # GET /v1/projects/:hashid/check_admin
+  def check_admin
+    render(json: { admin: @project_user.admin? }, status: :ok)
   end
 
   private
@@ -194,7 +242,7 @@ class V1::ProjectsController < V1::BaseController
     @project_user = @project.project_users.find_by(user_id: @current_user.id)
 
     if @project_user.nil?
-      render(json: { message: 'Project access is denied' }, status: :forbidden)
+      render(json: { message: "Project access is denied" }, status: :forbidden)
     end
   end
 

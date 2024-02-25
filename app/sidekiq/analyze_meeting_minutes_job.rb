@@ -2,7 +2,7 @@
 # Copyright 2024, MinuteBook. All rights reserved.
 # =============================================================================
 
-require 'openai'
+require "openai"
 
 class AnalyzeMeetingMinutesJob
   include Sidekiq::Job
@@ -18,7 +18,7 @@ class AnalyzeMeetingMinutesJob
 
     Rails.logger.info "Content: #{@content}"
 
-    @client = OpenAI::Client.new(access_token: ENV['OPENAI_SECRET_KEY'])
+    @client = OpenAI::Client.new(access_token: ENV["OPENAI_SECRET_KEY"])
 
     display_date = extract_display_date
     location     = extract_location
@@ -43,7 +43,7 @@ class AnalyzeMeetingMinutesJob
   end
 
   def extract_display_date
-    question = 'Return onlt the data and time of this meeting in ISO 8601 format in UTC. If there is not a time, return only the date, and if there is not a date or time return nil.'
+    question = "Return onlt the data and time of this meeting in ISO 8601 format in UTC. If there is not a time, return only the date, and if there is not a date or time return nil."
     
     prompt = <<~PROMPT
       #{@content}
@@ -54,19 +54,19 @@ class AnalyzeMeetingMinutesJob
 
     response = @client.chat(
       parameters: {
-          model:'gpt-3.5-turbo-0125',
-          messages: [{ role: 'user', content: prompt}],
+          model:"gpt-3.5-turbo-0125",
+          messages: [{ role: "user", content: prompt}],
           temperature: 0.7,
       }
     )
 
-    raw_display_date = response['choices'][0]['message']['content']
+    raw_display_date = response["choices"][0]["message"]["content"]
 
     return raw_display_date.match?(/\A\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z?)?\z/) ? raw_display_date : nil
   end
 
   def extract_location
-    question = 'Return only the address for this meeting but format the address as [Street Address], [City], [State/Province/Region], [Postal Code], [Two Digit Country Code, e.g. US]. If there is no address, return N/A.'
+    question = "Return only the address for this meeting but format the address as [Street Address], [City], [State/Province/Region], [Postal Code], [Two Digit Country Code, e.g. US]. If there is no address, return N/A."
     
     prompt = <<~PROMPT
       #{@content}
@@ -77,17 +77,17 @@ class AnalyzeMeetingMinutesJob
 
     response = @client.chat(
       parameters: {
-          model:'gpt-3.5-turbo-0125',
-          messages: [{ role: 'user', content: prompt}],
+          model:"gpt-3.5-turbo-0125",
+          messages: [{ role: "user", content: prompt}],
           temperature: 0.7,
       }
     )
 
-    return response['choices'][0]['message']['content']
+    return response["choices"][0]["message"]["content"]
   end
 
   def extract_attendees
-    question = 'Extract each person that attended this meeting into a comma seperated list. Create a key that concatenates the first and last name of each person, removed all spaces and lowercases all characters.'
+    question = "Extract each person that attended this meeting into a comma seperated list. Create a key that concatenates the first and last name of each person, removed all spaces and lowercases all characters."
 
     prompt = <<~PROMPT
       #{@content}
@@ -98,12 +98,12 @@ class AnalyzeMeetingMinutesJob
 
     response = @client.chat(
       parameters: {
-          model:'gpt-3.5-turbo-0125',
-          messages: [{ role: 'user', content: prompt}],
+          model:"gpt-3.5-turbo-0125",
+          messages: [{ role: "user", content: prompt}],
           temperature: 0.7,
       }
     )
 
-    return response['choices'][0]['message']['content']
+    return response["choices"][0]["message"]["content"]
   end
 end

@@ -3,4 +3,4 @@
 # ==============================================================================
 
 REGEX_PATTERN = /[^0-9a-zA-Z&\-. ]/.freeze
-ROOT_SLUG = 'root'.freeze
+ROOT_SLUG = "root".freeze

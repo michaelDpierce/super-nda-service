@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_02_19_180743) do
+ActiveRecord::Schema[7.1].define(version: 2024_02_25_171845) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -51,7 +51,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_19_180743) do
     t.integer "user_id"
     t.datetime "created_at", precision: nil
     t.datetime "updated_at", precision: nil
-    t.datetime "display_date", precision: nil
     t.index ["ancestry"], name: "index_directories_on_ancestry"
     t.index ["project_id"], name: "index_directories_on_project_id"
     t.index ["slug", "project_id", "ancestry"], name: "index_directories_on_slug_and_project_id_and_ancestry", unique: true
@@ -60,7 +59,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_19_180743) do
 
   create_table "directory_files", force: :cascade do |t|
     t.integer "directory_id"
-    t.integer "blob_id"
     t.integer "user_id"
     t.integer "project_id"
     t.string "filename"
@@ -73,7 +71,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_19_180743) do
     t.text "openai_attendance"
     t.datetime "openai_display_date"
     t.text "openai_location"
-    t.index ["blob_id"], name: "index_directory_files_on_blob_id"
     t.index ["directory_id"], name: "index_directory_files_on_directory_id"
   end
 
@@ -95,7 +92,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_19_180743) do
     t.datetime "last_viewed_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "role", default: 1
     t.boolean "access", default: false
   end
 
@@ -148,16 +144,19 @@ ActiveRecord::Schema[7.1].define(version: 2024_02_19_180743) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_login"
-    t.string "prefix"
-    t.string "title"
-    t.string "company"
-    t.string "company_role_type"
-    t.string "role"
-    t.string "prefixmatch"
-    t.string "fullname_match"
     t.index ["email"], name: "index_users_on_email"
-    t.index ["fullname_match"], name: "index_users_on_fullname_match"
-    t.index ["prefixmatch"], name: "index_users_on_prefixmatch"
+  end
+
+  create_table "versions", force: :cascade do |t|
+    t.string "item_type", null: false
+    t.bigint "item_id", null: false
+    t.string "event", null: false
+    t.string "whodunnit"
+    t.text "object"
+    t.datetime "created_at"
+    t.string "ip_address"
+    t.string "user_agent"
+    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

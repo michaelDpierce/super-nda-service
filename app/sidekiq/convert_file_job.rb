@@ -2,9 +2,9 @@
 # Copyright 2024, MinuteBook. All rights reserved.
 # =============================================================================
 
-require 'convert_api'
-require 'tempfile'
-require 'fileutils'
+require "convert_api"
+require "tempfile"
+require "fileutils"
 
 class ConvertFileJob
   include Sidekiq::Job
@@ -12,7 +12,7 @@ class ConvertFileJob
   def perform(directory_file_id, user_id)
     directory_file = DirectoryFile.find(directory_file_id)
 
-    return unless directory_file.file.attached? && directory_file.file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    return unless directory_file.file.attached? && directory_file.file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
     directory_file.update!(conversion_status: :in_progress)
 
@@ -22,7 +22,7 @@ class ConvertFileJob
     directory_file.converted_file.attach(
       io: File.open(converted_temp_file.path),
       filename: "#{directory_file.file.filename.base}.pdf",
-      content_type: 'application/pdf'
+      content_type: "application/pdf"
     )
 
     Rails.logger.info "Attached file: #{directory_file.converted_file.filename}"
@@ -37,8 +37,8 @@ class ConvertFileJob
   def convert_to_pdf(df)    
     begin
       download_blob_to_tempfile(df.file) do |tempfile|
-        result = ConvertApi.convert('pdf', { File: tempfile.path })
-        download_path = result.file.save(tempfile.path.sub('.docx', '.pdf'))
+        result = ConvertApi.convert("pdf", { File: tempfile.path })
+        download_path = result.file.save(tempfile.path.sub(".docx", ".pdf"))
         File.new(download_path)
       end
     rescue ConvertApi::ConvertApiError => e

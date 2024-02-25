@@ -3,8 +3,8 @@
 # =============================================================================
 
 class V1::DirectoryFilesController < V1::BaseController
-  before_action :find_directory_file!, only: %i[show update destroy analyze]
-  before_action :find_project!, only: %i[upload]
+  before_action :find_directory_file!, only: %i[show update destroy analyze download]
+  before_action :find_project!, only: %i[upload download]
   before_action :find_directory!, only: %i[upload]
 
   # POST /v1/upload
@@ -36,13 +36,28 @@ class V1::DirectoryFilesController < V1::BaseController
         end
       end
 
-      render json: { data: records, message: 'Success' }, status: :ok
+      render json: { data: records, message: "Success" }, status: :ok
     else
-      render json: { message: 'Failure' }, status: :bad_request
+      render json: { message: "Failure" }, status: :bad_request
     end
   end
 
-  # PUGETT /v1/projects/:hashid
+  # GET /v1/directory_file/:hashid/download
+  def download
+    url = if Rails.env.development?
+      Rails.application.routes.url_helpers.rails_blob_url(
+        @directory_file.file,
+        disposition: "attachment",
+        host: "http://localhost:3001"
+      )
+    else
+      @directory_file.file.url(disposition: "attachment", expires_in: 60.minutes)
+    end
+
+    redirect_to url
+  end
+
+  # GET /v1/directory_file/:hashid
   def show
     render json: @directory_file.to_json, status: :ok
   end
@@ -67,7 +82,7 @@ class V1::DirectoryFilesController < V1::BaseController
   # GET /v1/directory_files/:hashid/analyze
   def analyze
     AnalyzeMeetingMinutesJob.perform_async(@directory_file.try(:id))
-    render json: { message: 'Success' }, status: :ok
+    render json: { message: "Success" }, status: :ok
   end
 
   private
@@ -98,7 +113,7 @@ class V1::DirectoryFilesController < V1::BaseController
     url = if Rails.env.development?
       Rails.application.routes.url_helpers.rails_blob_url(
         record.file,
-        host: 'http://localhost:3001'
+        host: "http://localhost:3001"
       )
     else
       record.file.url(expires_in: 60.minutes)
@@ -111,7 +126,7 @@ class V1::DirectoryFilesController < V1::BaseController
       cleanFilename: clean_filename,
       date: record.try(:display_date),
       extension: extension,
-      type: 'file',
+      type: "file",
       url: url,
       tags: [],
       committee: nil,

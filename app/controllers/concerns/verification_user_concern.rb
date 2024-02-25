@@ -24,7 +24,7 @@ module VerificationUserConcern
     sdk = Clerk::SDK.new
     payout = sdk.decode_token(token)
 
-    @current_user = User.find_by!(source_id: payout['sub'])
+    @current_user = User.find_by!(source_id: payout["sub"])
 
     Current.user = @current_user
 
@@ -34,6 +34,6 @@ module VerificationUserConcern
   end
 
   def token
-    @token ||= request.headers['Authorization']&.split(' ')&.last
+    @token ||= request.headers["Authorization"]&.split(" ")&.last
   end
 end

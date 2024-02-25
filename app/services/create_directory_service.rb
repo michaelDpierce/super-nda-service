@@ -3,8 +3,7 @@
 # =============================================================================
 
 class CreateDirectoryService
-  attr_reader :result
-  attr_reader :status
+  attr_reader :result, :status
 
   def initialize(project, parent_directory, params, user)
     @project          = project
@@ -20,28 +19,44 @@ class CreateDirectoryService
 
     @new_directory = Directory.new(@params)
     @new_directory.set_slug
-    @new_directory.display_date = current_time
 
     @new_directory.project = @project
     @new_directory.user = @user
     @new_directory.parent = @parent_directory
 
-    if @new_directory.save
-      @parent_directory.save(validate: false)
+    begin
+      ActiveRecord::Base.transaction do
+        @new_directory.save!
+        @parent_directory.save!(validate: false)
+      end
+
       success
-    else
-      failed
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.error("Directory creation failed: #{e.message}")
+      failed("Directory validation failed. Please try again.")
+    rescue ActiveRecord::RecordNotUnique => e
+      Rails.logger.error("Directory creation failed due to uniqueness constraint: #{e.message}")
+      failed("Directory name must be unique within the parent directory. Please choose a different name.")
+    rescue => e
+      Rails.logger.error("Unexpected error during directory creation: #{e.message}")
+      failed("An unexpected error occurred. Please try again.")
     end
   end
 
   def success
+    @status = 201
     @result = {
-      directoryID: @new_directory.hashid
+      hashid: @new_directory.hashid,
+      key: "folder-#{@new_directory.hashid}",
+      name: @new_directory.name.to_s,
+      date: @new_directory&.created_at,
+      extension: "-",
+      type: "folder"
     }
   end
 
-  def failed
+  def failed(message)
     @status = 422
-    @result[:errors] = @new_directory.errors.messages
+    @result = { error: message }
   end
 end

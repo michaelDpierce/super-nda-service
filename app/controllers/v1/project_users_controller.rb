@@ -3,7 +3,8 @@
 # =============================================================================
 
 class V1::ProjectUsersController < V1::BaseController
-  before_action :load_project!, only: [:index, :create]
+  before_action :load_project!, only: %i[index create]
+  before_action :load_project_user, only: %i[index]
   before_action :find_project_user, only: %i[update destroy toggle_pinned]
 
    # GET /v1/projects/:hashid/project_users
@@ -11,8 +12,9 @@ class V1::ProjectUsersController < V1::BaseController
     render(
       json:
         ProjectUsersSerializer.new(
-          @project.project_users, includes: :user
-        ).serialized_json,
+          @project.project_users,
+          includes: :user
+        ).serializable_hash.merge(meta: { current_user_id: @current_user.hashid, admin: @project_user.admin? }),
       status: :ok
     )
   end
@@ -50,7 +52,7 @@ class V1::ProjectUsersController < V1::BaseController
   def update    
     if @project_user.update(update_project_user_params)
       render(
-        json: @project_user.to_serialized_json,
+        json: { message: "Success"},
         status: :ok
       )
     else
@@ -61,7 +63,7 @@ class V1::ProjectUsersController < V1::BaseController
     end
   end
 
-  # DESTROY /v1/projects/:project_id/project_users/:id/
+  # DESTROY /v1/project_users/:id/
   def destroy
     @project_user.destroy!
 
@@ -83,28 +85,14 @@ class V1::ProjectUsersController < V1::BaseController
     render(json: DashboardStats.new(@current_user).run)
   end
 
-  # GET /v1/projects/:project_id/project_users/email
-  # def email
-  #   authorize(@project, :access?)
-    
-  #   email = (params[:email] || '').strip.downcase
-  #   exists = false
-  #   if email.present?
-  #     exists =
-  #       @project.project_users
-  #         .includes(:user)
-  #         .references(:user)
-  #         .where('LOWER(users.email) = ?', email)
-  #         .exists?
-  #   end
-
-  #   render(json: { exists: exists })
-  # end
-
   private
 
   def load_project!
     @project = Project.find(params[:project_id])
+  end
+
+  def load_project_user
+    @project_user = ProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
   end
 
   def find_project_user
@@ -120,6 +108,6 @@ class V1::ProjectUsersController < V1::BaseController
   def update_project_user_params
     params
       .require(:project_user)
-      .permit(%i[id access])
+      .permit(%i[id access admin])
   end
 end

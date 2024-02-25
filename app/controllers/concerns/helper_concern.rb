@@ -27,15 +27,15 @@ module HelperConcern
   def sort_by(obj)
     return obj if params[:sort_by].blank?
 
-    arguments = params[:sort_by].split('|')
+    arguments = params[:sort_by].split("|")
 
     order_statement = arguments.map do |argument|
-      key, val = argument.split('=')
-      val = val.include?('descend') ? 'DESC' : 'ASC'
+      key, val = argument.split("=")
+      val = val.include?("descend") ? "DESC" : "ASC"
       "#{key} #{val}"
     end
 
-    obj.reorder(order_statement.join(', '))
+    obj.reorder(order_statement.join(", "))
   end
 
   def render_resource(resource, serializer, options = {})

@@ -2,9 +2,9 @@
 # Copyright 2024, MinuteBook. All rights reserved.
 # =============================================================================
 
-require 'docx'
-require 'pdf-reader'
-require 'tempfile'
+require "docx"
+require "pdf-reader"
+require "tempfile"
 
 class MetaDataJob
   include Sidekiq::Job
@@ -21,8 +21,8 @@ class MetaDataJob
     if blob.present?
       Rails.logger.info "Creating Tempfile for Blob: #{blob.filename}"
 
-      if blob.filename.extension_with_delimiter.downcase == '.pdf'
-        Rails.logger.info 'Processing PDF File'
+      if blob.filename.extension_with_delimiter.downcase == ".pdf"
+        Rails.logger.info "Processing PDF File"
 
         Tempfile.create(
           [blob.filename.base, blob.filename.extension_with_delimiter],
@@ -41,8 +41,8 @@ class MetaDataJob
           Rails.logger.info "Updaing Database with Text: #{text}"
           df.update(content: text)
         end
-      elsif blob.filename.extension_with_delimiter.downcase == '.docx'
-        Rails.logger.info 'Processing DOCX File'
+      elsif blob.filename.extension_with_delimiter.downcase == ".docx"
+        Rails.logger.info "Processing DOCX File"
 
         Tempfile.create(
           [blob.filename.base, blob.filename.extension_with_delimiter],
@@ -61,7 +61,7 @@ class MetaDataJob
         
           doc.tables.each do |table|
             table.rows.each do |row|
-              row_cells = row.cells.map { |cell| cell.text.strip }.join(' | ')
+              row_cells = row.cells.map { |cell| cell.text.strip }.join(" | ")
               content += row_cells + "\n"
             end
             content += "\n"
@@ -73,7 +73,7 @@ class MetaDataJob
           df.update(content: content)
         end
       else
-        Rails.logger.info 'Unsupported File Type'
+        Rails.logger.info "Unsupported File Type"
       end
     end
   end

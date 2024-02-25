@@ -13,7 +13,6 @@ class Directory < ApplicationRecord
   belongs_to :user
 
   has_many :directory_files, dependent: :destroy_async
-  has_many :files, through: :directory_files, source: :blob
 
   validates :name, :slug, presence: true
 
@@ -21,10 +20,10 @@ class Directory < ApplicationRecord
   scope :exclude_root, -> { roots.where.not(slug: ROOT_SLUG).first }
 
   def set_slug
-    self.slug = root? ? ROOT_SLUG : name.gsub(REGEX_PATTERN, '').downcase
+    self.slug = root? ? ROOT_SLUG : name.gsub(REGEX_PATTERN, "").downcase
   end
 
   def set_name
-    self.name = self.name.gsub(REGEX_PATTERN, '')
+    self.name = self.name.gsub(REGEX_PATTERN, "")
   end
 end
