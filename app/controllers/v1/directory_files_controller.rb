@@ -7,6 +7,47 @@ class V1::DirectoryFilesController < V1::BaseController
   before_action :find_project!, only: %i[upload download]
   before_action :find_directory!, only: %i[upload]
 
+  # GET /v1/directory_file/:hashid
+  def show
+    render json: format_file(@directory_file).to_json, status: :ok
+  end
+
+  # PUT /v1/projects/:hashid
+  # PATCH /v1/projects/:hashid
+  def update
+    if @directory_file.update(directory_file_params)
+      new_file = params[:file] if params[:file].present?
+
+      if @directory_file.file.attached? && new_file.present?
+        @directory_file.file.attach(new_file)
+        @directory_file.save!
+  
+        MetaDataJob.perform_async(@directory_file.try(:id), @current_user.id)
+
+        if @directory_file.docx_file?
+          ConvertFileJob.perform_async(@directory_file.try(:id), @current_user.id)
+        end
+      end
+
+      render json: @directory_file.to_json, status: :ok
+    else
+      render json: { errors: @directory_file.errors.messages },
+             status: :unprocessable_entity
+    end
+  end
+
+  # DELETE /v1/directory_file/:hashid
+  def destroy
+    @directory_file.destroy!
+    head(:no_content)
+  end
+
+  # GET /v1/directory_files/:hashid/analyze
+  def analyze
+    AnalyzeMeetingMinutesJob.perform_async(@directory_file.try(:id))
+    render json: { message: "Success" }, status: :ok
+  end
+
   # POST /v1/upload
   def upload
     if params[:files]
@@ -55,46 +96,6 @@ class V1::DirectoryFilesController < V1::BaseController
     end
 
     render json: { url: url }, status: :ok
-  end
-
-  # GET /v1/directory_file/:hashid
-  def show
-    render json: @directory_file.to_json, status: :ok
-  end
-
-  # PUT /v1/projects/:hashid
-  # PATCH /v1/projects/:hashid
-  def update
-    if @directory_file.update(directory_file_params)
-      new_file = params[:file] if params[:file].present?
-
-      if @directory_file.file.attached? && new_file.present?
-        @directory_file.file.attach(new_file)
-        @directory_file.save!
-  
-        MetaDataJob.perform_async(@directory_file.try(:id), @current_user.id)
-
-        if @directory_file.docx_file?
-          ConvertFileJob.perform_async(@directory_file.try(:id), @current_user.id)
-        end
-      end
-
-      render json: @directory_file.to_json, status: :ok
-    else
-      render json: { errors: @directory_file.errors.messages },
-             status: :unprocessable_entity
-    end
-  end
-
-  def destroy
-    @directory_file.destroy!
-    head(:no_content)
-  end
-
-  # GET /v1/directory_files/:hashid/analyze
-  def analyze
-    AnalyzeMeetingMinutesJob.perform_async(@directory_file.try(:id))
-    render json: { message: "Success" }, status: :ok
   end
 
   private
