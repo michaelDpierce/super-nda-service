@@ -66,6 +66,19 @@ class V1::DirectoryFilesController < V1::BaseController
   # PATCH /v1/projects/:hashid
   def update
     if @directory_file.update(directory_file_params)
+      new_file = params[:file] if params[:file].present?
+
+      if @directory_file.file.attached? && new_file.present?
+        @directory_file.file.attach(new_file)
+        @directory_file.save!
+  
+        MetaDataJob.perform_async(@directory_file.try(:id), @current_user.id)
+
+        if @directory_file.docx_file?
+          ConvertFileJob.perform_async(@directory_file.try(:id), @current_user.id)
+        end
+      end
+
       render json: @directory_file.to_json, status: :ok
     else
       render json: { errors: @directory_file.errors.messages },
