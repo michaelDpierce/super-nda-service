@@ -54,7 +54,7 @@ class V1::DirectoryFilesController < V1::BaseController
       @directory_file.file.url(disposition: "attachment", expires_in: 60.minutes)
     end
 
-    redirect_to url
+    render json: { url: url }, status: :ok
   end
 
   # GET /v1/directory_file/:hashid
@@ -67,7 +67,6 @@ class V1::DirectoryFilesController < V1::BaseController
   def update
     if @directory_file.update(directory_file_params)
       render json: @directory_file.to_json, status: :ok
-      # Render JSON that matches record model
     else
       render json: { errors: @directory_file.errors.messages },
              status: :unprocessable_entity
