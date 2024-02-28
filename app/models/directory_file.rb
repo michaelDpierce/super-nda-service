@@ -23,5 +23,9 @@ class DirectoryFile < ApplicationRecord
 
   def pdf_file?
     file.content_type == "application/pdf"
-  end  
+  end
+  
+  def self.search_by_tag(tag_name)
+    tagged_with(tag_name)
+  end
 end

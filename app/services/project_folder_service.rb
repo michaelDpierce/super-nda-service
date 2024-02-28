@@ -54,7 +54,7 @@ class ProjectFolderService
           date: d&.created_at,
           extension: "-",
           type: "folder",
-          directory_id: d.hashid
+          directory_id: d.id
         }
       )
     end

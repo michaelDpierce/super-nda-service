@@ -1,49 +1,78 @@
-# ==============================================================================
+# =============================================================================
 # Copyright 2024, MinuteBook. All rights reserved.
-# ==============================================================================
+# =============================================================================
 
 class ProjectSearchService
-  def initialize(user_id, query, limit = 10)
-    @user_id    = user_id
-    @limit      = limit
-    @query      = query[:q]
+  attr_reader :status
+
+  def initialize(project, query)
+    @project = project
+    @query   = query
+    @status  = 200
   end
 
-  def result
-    return @result if @result
+  def result    
+    data =
+      perform_search.map { |record| build_search_result(record)}
 
-    resource = resource_by_q
+    puts data
 
-    @result = resource.map do |record|
-      build_ungrouped_item_result(record)
-    end
-
-    @result
+    @result = {
+      data: data,
+      status: 200,
+    }
   end
 
   private
 
-  def resource_by_q
-    user = User.find(@user_id)
-
-    if @query.blank?
-      @resource_by_q =
-        user.projects_with_access
-          .limit(@limit)
-    else
-      @resource_by_q =
-        user.projects_with_access
-          .main_search(@query)
-          .limit(@limit)
-    end
+  def perform_search
+    @project.directory_files.search_by_tag(@query)
   end
 
-  def build_ungrouped_item_result(object)
+  def build_search_result(record)
+    url = if Rails.env.development?
+      Rails.application.routes.url_helpers.rails_blob_url(
+        record.file,
+        host: "http://localhost:3001"
+      )
+    else
+      record.file.url(expires_in: 60.minutes)
+    end
+
+    if record.converted_file.attached?
+      converted_file_url = if Rails.env.development?
+        Rails.application.routes.url_helpers.rails_blob_url(
+          record.converted_file,
+          host: "http://localhost:3001"
+        )
+      else
+        record.converted_file.url(expires_in: 60.minutes)
+      end
+    else
+      converted_file_url = nil
+    end
+
+    filename = record.filename.to_s 
+    extension = File.extname(filename).to_s
+    cleanFilename = File.basename(filename, extension).to_s
+
     { 
-      id: object.hashid,
-      key: object.id,
-      text: "#{object.name} - #{object.hashid}",
-      type: object.class.name
+      hashid: record.hashid,
+      key: "file-#{record.hashid}",
+      name: filename,
+      convertedFilename: record.converted_file.filename.to_s,
+      cleanFilename: cleanFilename,
+      date: record&.display_date,
+      extension: extension,
+      type: "file",
+      url: url,
+      convertedFileUrl: converted_file_url,
+      tags: record.tag_list,
+      supported: record.docx_file? || record.pdf_file?,
+      conversionStatus: record.conversion_status,
+      convertedFile: record.converted_file.attached?,
+      committee: record.committee,
+      directory_id: record.directory.hashid
     }
   end
 end

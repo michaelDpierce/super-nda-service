@@ -136,13 +136,23 @@ class V1::ProjectsController < V1::BaseController
 
   # GET /v1/search
   def search
-    service = ProjectSearchService.new(
-      @current_user.id,
-      { q: params[:q] },
-      params[:limit] || 10
-    )
+    service = 
+      if params[:project_id].present?
+        project = @current_user.projects_with_access.find(params[:project_id])
 
-    render(json: { result: service.result })
+         ProjectSearchService.new(
+          project,
+          params[:q]
+        )
+      else
+        SearchService.new(
+          @current_user.id,
+          { q: params[:q] },
+          params[:limit] || 10
+        )
+      end
+  
+    render(json: { result: service.result, status: service.status })
   end
 
   # GET /v1/projects/:hashid/folder/:directory_id
