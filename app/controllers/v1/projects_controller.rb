@@ -141,8 +141,8 @@ class V1::ProjectsController < V1::BaseController
         project = @current_user.projects_with_access.find(params[:project_id])
 
          ProjectSearchService.new(
-          project,
-          params[:q]
+          params[:q],
+          project.id
         )
       else
         SearchService.new(

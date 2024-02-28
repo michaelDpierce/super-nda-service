@@ -5,29 +5,40 @@
 class ProjectSearchService
   attr_reader :status
 
-  def initialize(project, query)
-    @project = project
-    @query   = query
-    @status  = 200
+  def initialize(query, project_id)
+    @query      = query
+    @project_id = project_id
+    @status     = 200
   end
 
-  def result    
-    data =
-      perform_search.map { |record| build_search_result(record)}
+  def result
+    result =
+      if @query.include?(':')
+        attribute, value = @query.split(':', 2)
+        clean_value = value.squish!
 
-    puts data
+        case attribute
+        when 'tag', 't'
+          DirectoryFile.joins(:tags)
+            .where("LOWER(tags.name) = LOWER(?) AND directory_files.project_id = ?", clean_value.downcase, @project_id)
+            .distinct
+        when 'committee', 'c'
+          DirectoryFile.where("committee ILIKE ? AND project_id = ?", "%#{clean_value}%", @project_id)
+        end
+      else
+        DirectoryFile.where("filename ILIKE ? AND project_id = ?", "%#{clean_value}%", @project_id)
+      end
+
+    data =
+      result.map { |record| build_search_result(record)}
 
     @result = {
       data: data,
-      status: 200,
+      status: 200
     }
   end
 
   private
-
-  def perform_search
-    @project.directory_files.search_by_tag(@query)
-  end
 
   def build_search_result(record)
     url = if Rails.env.development?
