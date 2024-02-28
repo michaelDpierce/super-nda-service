@@ -53,7 +53,8 @@ class ProjectFolderService
           name: d.name.to_s,
           date: d&.created_at,
           extension: "-",
-          type: "folder"
+          type: "folder",
+          directory_id: d.hashid
         }
       )
     end
@@ -104,6 +105,7 @@ class ProjectFolderService
           conversionStatus: df.conversion_status,
           convertedFile: df.converted_file.attached?,
           committee: df.committee,
+          directory_id: df.directory.hashid
         }
       )
     end
