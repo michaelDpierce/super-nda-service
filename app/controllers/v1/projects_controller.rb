@@ -184,30 +184,30 @@ class V1::ProjectsController < V1::BaseController
   # GET /v1/projects/:hashid/export
   def export
     dfs = @project.directory_files
+    directories = Directory.where(project_id: @project.id)
 
     data = CSV.generate(headers: true) do |csv|
       csv << [
-        "ID",
         "Name",
         "Directory",
         "Created At",
         "Updated At",
         "Date",
-        "Uploaded By",
-        "Tags"
+        "User",
+        "Tags",
+        "Committee"
       ]
 
       dfs.each do |df|
         csv << [
-          df.id,
           df.filename,
-          df.directory.try(:name),
+          directories.find(df.directory_id)&.try(:name),
           df.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
           df.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
           df.display_date.strftime("%Y-%m-%d %H:%M:%S %Z"),
           df.user.try(:email),
-          df.tag_list.join(", ").to_s
-
+          df.tag_list.join(", ").to_s,
+          df.committee || 'None'
         ]
       end
     end
