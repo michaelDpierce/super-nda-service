@@ -25,6 +25,7 @@ gem "rack-cors", "2.0.1"
 gem "rails", "7.1.2"
 gem "ruby-openai", "6.3.1"
 gem "sidekiq", "7.2.1"
+gem "redis-rails", "5.0.2"
 
 group :development do
   gem "puma", "6.4.1"
