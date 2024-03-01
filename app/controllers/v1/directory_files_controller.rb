@@ -146,7 +146,7 @@ class V1::DirectoryFilesController < V1::BaseController
       type: "file",
       url: url,
       tags: [],
-      committee: nil,
+      committee: record.committee,
       supported: record.docx_file? || record.pdf_file?
     }
   end
