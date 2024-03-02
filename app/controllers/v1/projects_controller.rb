@@ -48,23 +48,6 @@ class V1::ProjectsController < V1::BaseController
     )
   end
 
-  # GET /v1/pinned
-  def pinned
-    base_filtering!
-
-    project_ids =
-      ProjectUser.where(user_id: @current_user.id, pinned: true)
-        .pluck(:project_id)
-
-    @resource = @resource.where(id: project_ids).where(status: "active")
-
-    render_resource(
-      @resource,
-      PinnedProjectsSerializer,
-      params: { user_id: @current_user.id }
-    )
-  end
-
   # POST /v1/projects
   def create
     service =
@@ -88,8 +71,7 @@ class V1::ProjectsController < V1::BaseController
         meta: {
           current_user_id: @current_user.try(:id),
           project_user_id: @project_user.try(:hashid),
-          status: @project.try(:status),
-          pinned: @project_user.try(:pinned)
+          status: @project.try(:status)
         }
       },
     }
@@ -116,8 +98,7 @@ class V1::ProjectsController < V1::BaseController
         meta: {
           current_user_id: @current_user.try(:id),
           project_user_id: @project_user.try(:hashid),
-          status: @project.try(:status),
-          pinned: @project_user.try(:pinned)
+          status: @project.try(:status)
         }
       },
     }
@@ -239,7 +220,7 @@ class V1::ProjectsController < V1::BaseController
         user.last_name = params["data"]["lastName"]
       end
     
-      project_user = ProjectUser.create!(user_id: user.id, project_id: @project.id, pinned: true)
+      project_user = ProjectUser.create!(user_id: user.id, project_id: @project.id)
   
       render(json: { data: project_user }, status: :created)
     end

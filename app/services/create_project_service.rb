@@ -42,9 +42,7 @@ class CreateProjectService
       project_id: @project.id,
       user_id: @user.id,
       admin: true,
-      access: true,
-      pinned: true,
-      pinned_at: Time.now
+      access: true
     )
   end
 

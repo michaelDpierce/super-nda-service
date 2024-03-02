@@ -23,7 +23,6 @@ Rails.application.routes.draw do
     match "/directory_files/:id/analyze", to: "directory_files#analyze", via: "get"
     match "/directory_files/:id/download", to: "directory_files#download", via: "get"
 
-    get :pinned_projects, to: "projects#pinned"
     get :search, to: "projects#search"
     
     match "/projects/:id/folder", to: "projects#folder", via: "get"
@@ -32,8 +31,6 @@ Rails.application.routes.draw do
     match "/projects/:id/create_project_user", to: "projects#create_project_user", via: "post"
     match "/projects/:id/check_admin", to: "projects#check_admin", via: "get"
 
-    resources :project_users, only: %i[index create update destroy] do
-      put :pinned, to: "project_users#toggle_pinned", on: :member
-    end
+    resources :project_users, only: %i[index create update destroy]
   end
 end

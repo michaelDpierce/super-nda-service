@@ -43,12 +43,6 @@ class V1::DirectoryFilesController < V1::BaseController
     head(:no_content)
   end
 
-  # GET /v1/directory_files/:hashid/analyze
-  def analyze
-    AnalyzeMeetingMinutesJob.perform_async(@directory_file.try(:id))
-    render json: { message: "Success" }, status: :ok
-  end
-
   # POST /v1/upload
   def upload
     if params[:files]
