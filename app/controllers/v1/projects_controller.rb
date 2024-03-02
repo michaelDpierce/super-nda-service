@@ -106,6 +106,8 @@ class V1::ProjectsController < V1::BaseController
   # PUT /v1/projects/:hashid
   # PATCH /v1/projects/:hashid
   def update
+    was_not_archived = !@project.archived?
+
     options = {
       params: {
         permissions: {
@@ -121,6 +123,10 @@ class V1::ProjectsController < V1::BaseController
     }
 
     if @project.update(update_project_params)
+      if was_not_archived && @project.archived?
+        ProjectArchiveJob.perform_async(@project.id)
+      end
+
       render json: ProjectSerializer.new(@project, options).serialized_json
     else
       render json: { errors: @project.errors.messages },
