@@ -12,30 +12,35 @@ class ProjectSearchService
   end
 
   def result
-    result =
-      if @query.include?(':')
-        attribute, value = @query.split(':', 2)
-        clean_value = value.squish!
+    filename_results =
+      DirectoryFile.where(
+        "filename ILIKE ? AND project_id = ?",
+        "%#{@query}%", @project_id
+      )
 
-        case attribute
-        when 'tag', 't'
-          DirectoryFile.joins(:tags)
-            .where("LOWER(tags.name) = LOWER(?) AND directory_files.project_id = ?", clean_value.downcase, @project_id)
-            .distinct
-        when 'committee', 'c'
-          DirectoryFile.where("committee ILIKE ? AND project_id = ?", "%#{clean_value}%", @project_id)
-        end
-      else
-        DirectoryFile.where("filename ILIKE ? AND project_id = ?", "%#{clean_value}%", @project_id)
-      end
+    tag_results =
+      DirectoryFile.joins(:tags)
+        .where(
+          "LOWER(tags.name) = LOWER(?) AND directory_files.project_id = ?",
+          @query.downcase, @project_id
+        )
+        .distinct
 
-    data =
-      result.map { |record| build_search_result(record)}
-
-    @result = {
-      data: data,
-      status: 200
+    committee_results =
+      DirectoryFile.where(
+        "committee ILIKE ? AND project_id = ?",
+        "%#{@query}%", @project_id
+      )
+  
+    combined_results = {
+      filenames: filename_results,
+      tags: tag_results,
+      committees: committee_results
     }
+  
+    @result = combined_results.each_with_object({}) do |(key, records), acc|
+      acc[key] = records.map { |record| build_search_result(record) }
+    end
   end
 
   private
