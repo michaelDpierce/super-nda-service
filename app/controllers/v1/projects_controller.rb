@@ -194,6 +194,7 @@ class V1::ProjectsController < V1::BaseController
         "Updated At",
         "Date",
         "User",
+        "Published?",
         "Tags",
         "Committee"
       ]
@@ -206,6 +207,7 @@ class V1::ProjectsController < V1::BaseController
           df.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
           df.display_date.strftime("%Y-%m-%d %H:%M:%S %Z"),
           df.user.try(:email),
+          df.published ? "Y" : "N",
           df.tag_list.join(", ").to_s,
           df.committee
         ]

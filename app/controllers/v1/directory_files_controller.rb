@@ -6,6 +6,7 @@ class V1::DirectoryFilesController < V1::BaseController
   before_action :find_directory_file!, only: %i[show update destroy analyze download]
   before_action :find_project!, only: %i[upload download]
   before_action :find_directory!, only: %i[upload]
+  before_action :find_project_user!, only: %i[download]
 
   # GET /v1/directory_file/:hashid
   def show
@@ -85,24 +86,31 @@ class V1::DirectoryFilesController < V1::BaseController
 
   # GET /v1/directory_file/:hashid/download
   def download
-    url = if Rails.env.development?
-      Rails.application.routes.url_helpers.rails_blob_url(
-        @directory_file.file,
-        disposition: "attachment",
-        host: "http://localhost:3001"
-      )
-    else
-      @directory_file.file.url(disposition: "attachment", expires_in: 60.minutes)
-    end
+    if @project_user.present?
+     file =
+      @project_user.admin? ? @directory_file.file : @directory_file.converted_file
 
-    render json: { url: url }, status: :ok
+      url = if Rails.env.development?
+        Rails.application.routes.url_helpers.rails_blob_url(
+          file,
+          disposition: "attachment",
+          host: "http://localhost:3001"
+        )
+      else
+        file.url(disposition: "attachment", expires_in: 60.minutes)
+      end
+
+      render json: { url: url }, status: :ok
+    else
+      render json: { message: "Unauthorized" }, status: :unauthorized
+    end
   end
 
   private
 
   def directory_file_params
     params.require(:directory_file)
-      .permit(:directory_id, :filename, :display_date, :committee,
+      .permit(:directory_id, :filename, :display_date, :committee, :published,
               :tag_list, :tag_list => [])
   end
 
@@ -116,6 +124,10 @@ class V1::DirectoryFilesController < V1::BaseController
 
   def find_directory!
     @directory = Directory.find(params[:directory_id])
+  end
+
+  def find_project_user!
+    @project_user = ProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
   end
 
   def format_file(record)

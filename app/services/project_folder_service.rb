@@ -24,7 +24,7 @@ class ProjectFolderService
         {
           hashid: Directory.find(directory&.parent_id).hashid,
           key: "folder-#{directory.hashid}",
-          name: "..",
+          name: ".. GO BACK",
           date: nil,
           extension: "-",
           type: "folder"
@@ -34,15 +34,12 @@ class ProjectFolderService
       records = Array.new
     end
 
-    breadcrumbs = Array.new
-
     child_ids   = directory.child_ids
     path_ids    = directory.path_ids
 
     child_directories = Directory.where(id: child_ids)
     path_directories  = Directory.where(id: path_ids)
 
-    # Build records
     child_ids.each do |child_id|      
       d = child_directories.find_by(id: child_id)
 
@@ -59,7 +56,12 @@ class ProjectFolderService
       )
     end
 
-    directory_files = directory.directory_files
+    directory_files = 
+      if @project_user.admin?
+        directory.directory_files
+      else
+        directory.directory_files.where(published: true)
+      end
 
     directory_files.each do |df|
       url = if Rails.env.development?
@@ -105,20 +107,10 @@ class ProjectFolderService
           conversionStatus: df.conversion_status,
           convertedFile: df.converted_file.attached?,
           committee: df.committee,
-          directory_id: df.directory.hashid
+          directory_id: df.directory.hashid,
+          published: df.published
         }
       )
-    end
-
-    # Build breadcrumbs
-    path_ids.each do |path_id|      
-      d = path_directories.find_by(id: path_id)
-
-      breadcrumbs.push({
-        hashid: d.hashid,
-        name: d.name,
-        projectId: @project.hashid
-      })
     end
 
     sorted_records = records.sort_by do |record|
@@ -126,7 +118,6 @@ class ProjectFolderService
     end
 
     {
-      breadcrumbs: breadcrumbs,
       records: sorted_records,
       directoryID: directory.hashid,
       permissions: {
