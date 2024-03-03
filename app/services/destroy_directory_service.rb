@@ -27,7 +27,7 @@ class DestroyDirectoryService
       @directory.destroy!
     else
       @status = 422 
-      @result = { error: "Directory is not empty. Please delete all files before deleting the directory." }
+      @result = { error: "Folder is not empty. Please delete all documents before deleting the folder." }
     end
   rescue StandardError => e
     @status = 500

@@ -81,7 +81,7 @@ class V1::ProjectsController < V1::BaseController
 
       render json: ProjectSerializer.new(@project, options).serialized_json
     else
-      render json: { message: "Project not found" }, status: :not_found
+      render json: { message: "Project not found." }, status: :not_found
     end
   end
 
@@ -277,7 +277,7 @@ class V1::ProjectsController < V1::BaseController
     @project_user = @project.project_users.find_by(user_id: @current_user.id)
 
     if @project_user.nil?
-      render(json: { message: "Project access is denied" }, status: :forbidden)
+      render(json: { message: "Project access is denied." }, status: :forbidden)
     end
   end
 
