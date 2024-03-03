@@ -43,7 +43,7 @@ class V1::DirectoryFilesController < V1::BaseController
     head(:no_content)
   end
 
-  # POST /v1/upload
+  # POST /v1/directory_files/upload
   def upload
     if params[:files]
       records = Array.new
