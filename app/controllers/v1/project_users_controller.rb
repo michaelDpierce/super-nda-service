@@ -19,20 +19,6 @@ class V1::ProjectUsersController < V1::BaseController
     )
   end
 
-  # POST /v1/project_users
-  def create    
-    service = ImportUsersService.new(
-      @current_user, @project, [create_project_user_params], request&.remote_ip
-    )
-
-    service.call
-
-    render(
-      json: service.result,
-      status: service.result[:errors] ? :unprocessable_entity : :created
-    )
-  end
-
   # PUT /v1/project_users/:hashid
   def update    
     if @project_user.update(update_project_user_params)
@@ -67,12 +53,6 @@ class V1::ProjectUsersController < V1::BaseController
 
   def find_project_user
     @project_user = ProjectUser.find(params[:id])
-  end
-
-  def create_project_user_params
-    params
-      .require(:project_user)
-      .permit(%i[email name])
   end
 
   def update_project_user_params

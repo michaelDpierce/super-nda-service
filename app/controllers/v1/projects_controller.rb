@@ -11,10 +11,10 @@ class V1::ProjectsController < V1::BaseController
       update
       destroy
       folder
-      remove_supporting_document
       tags
       export
       create_project_user
+      create_project_contact
       check_admin
     ]
 
@@ -24,10 +24,10 @@ class V1::ProjectsController < V1::BaseController
       update
       destroy
       folder
-      remove_supporting_document
       tags
       export
       create_project_user
+      create_project_contact
       check_admin
     ]
 
@@ -226,6 +226,39 @@ class V1::ProjectsController < V1::BaseController
     end
   rescue ActiveRecord::RecordInvalid => e
     render(json: { error: e.message }, status: :unprocessable_entity)
+  end
+
+  # POST /v1/projects/:hashid/create_project_contact
+  def create_project_contact
+    ActiveRecord::Base.transaction do
+      full_name_lookup = "#{params["data"]["firstName"]}#{params["data"]["lastName"]}"
+                          .gsub(/[^A-Za-z0-9]/, '')
+                          .downcase
+    
+      contact = Contact.find_or_create_by!(full_name_lookup: full_name_lookup) do |c|
+        c.prefix = params["data"]["prefix"]
+        c.first_name = params["data"]["firstName"]
+        c.last_name = params["data"]["lastName"]
+      end
+    
+      existing_project_contact =
+        ProjectContact.find_by(contact_id: contact.id, project_id: @project.id)
+    
+      if existing_project_contact.nil?
+        role = params["data"]["role"] || nil
+
+        project_contact =
+          ProjectContact.create!(
+            contact_id: contact.id,
+            project_id: @project.id,
+            role: role
+          )
+    
+        render(json: { data: project_contact }, status: :created)
+      else
+        render(json: { error: 'This contact is already associated with the project.' }, status: :unprocessable_entity)
+      end
+    end
   end
 
   # GET /v1/projects/:hashid/check_admin

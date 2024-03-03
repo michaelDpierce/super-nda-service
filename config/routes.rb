@@ -1,36 +1,56 @@
-# ==============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
-# ==============================================================================
 require "sidekiq/web"
 
+# Sidekiq web interface configuration
 Sidekiq::Web.use ActionDispatch::Cookies
 Sidekiq::Web.use ActionDispatch::Session::CookieStore, key: "_mb_session"
 
 Rails.application.routes.draw do
+  # Root route
   root "home#welcome"
 
+  # Sidekiq web interface route
   mount Sidekiq::Web => "/sidekiq"
 
+  # API versioning
   namespace :v1, defaults: { format: :json } do
-    resources :auth, only: :create
+    # Authentication
+    resources :auth, only: [:create]
 
-    resources :projects, only: %i[index show create update destroy] do
-      resources :directories, only: %i[create update destroy]
+    # Contact management
+    resources :contacts, only: [:show, :update]
+
+    # Project management
+    resources :projects, only: [:index, :show, :create, :update, :destroy] do
+      # Nested directory management within projects
+      resources :directories, only: [:create, :update, :destroy]
+
+      # Project-specific routes
+      get :folder, on: :member
+      get :tags, on: :member
+      get :export, on: :member
+      post :create_project_user, on: :member
+      post :create_project_contact, on: :member
+      get :check_admin, on: :member
     end
 
-    resources :directory_files
-    match "/upload", to: "directory_files#upload", via: "post"
-    match "/directory_files/:id/analyze", to: "directory_files#analyze", via: "get"
-    match "/directory_files/:id/download", to: "directory_files#download", via: "get"
-
+    # Project search
     get :search, to: "projects#search"
-    
-    match "/projects/:id/folder", to: "projects#folder", via: "get"
-    match "/projects/:id/tags", to: "projects#tags", via: "get"
-    match "/projects/:id/export", to: "projects#export", via: "get"
-    match "/projects/:id/create_project_user", to: "projects#create_project_user", via: "post"
-    match "/projects/:id/check_admin", to: "projects#check_admin", via: "get"
 
-    resources :project_users, only: %i[index create update destroy]
+    # Directory file management
+    resources :directory_files, except: [:new, :edit] do
+      # Custom actions for directory_files
+      collection do
+        post :upload
+      end
+
+      member do
+        get :analyze
+        get :download
+      end
+    end
+
+    # Project contacts and users
+    resources :project_contacts, only: [:index, :update, :destroy]
+    resources :project_users, only: [:index, :update, :destroy]
   end
 end
