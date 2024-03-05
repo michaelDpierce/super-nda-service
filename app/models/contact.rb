@@ -7,8 +7,14 @@ class Contact < ApplicationRecord
 
   before_save :update_lookups
 
+  has_many :directory_files, through: :meeting_attendances
+  has_many :meeting_attendances
   has_many :project_contacts, dependent: :destroy_async
 
+  def full_name
+    "#{first_name} #{last_name}"
+  end
+  
   private
 
   def update_lookups

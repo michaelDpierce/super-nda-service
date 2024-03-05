@@ -1,3 +1,8 @@
+
+# =============================================================================
+# Copyright 2024, MinuteBook. All rights reserved.
+# =============================================================================
+
 require "sidekiq/web"
 
 # Sidekiq web interface configuration
@@ -38,7 +43,6 @@ Rails.application.routes.draw do
 
     # Directory file management
     resources :directory_files, except: [:new, :edit] do
-      # Custom actions for directory_files
       collection do
         post :upload
       end
@@ -46,6 +50,9 @@ Rails.application.routes.draw do
       member do
         get :analyze
         get :download
+        get :attendance
+        get :contacts
+        post :update_attendance
       end
     end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_03_145413) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_05_173545) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -82,6 +82,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_03_145413) do
     t.string "committee", default: "None"
     t.boolean "published", default: false
     t.index ["directory_id"], name: "index_directory_files_on_directory_id"
+  end
+
+  create_table "meeting_attendances", force: :cascade do |t|
+    t.integer "status"
+    t.bigint "contact_id", null: false
+    t.bigint "directory_file_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["contact_id", "directory_file_id"], name: "index_meeting_attendances_on_contact_id_and_directory_file_id", unique: true
+    t.index ["contact_id"], name: "index_meeting_attendances_on_contact_id"
+    t.index ["directory_file_id"], name: "index_meeting_attendances_on_directory_file_id"
   end
 
   create_table "pg_search_documents", force: :cascade do |t|
@@ -179,5 +190,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_03_145413) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "meeting_attendances", "contacts"
+  add_foreign_key "meeting_attendances", "directory_files"
   add_foreign_key "taggings", "tags"
 end

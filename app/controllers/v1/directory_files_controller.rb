@@ -3,14 +3,18 @@
 # =============================================================================
 
 class V1::DirectoryFilesController < V1::BaseController
-  before_action :find_directory_file!, only: %i[show update destroy analyze download]
-  before_action :find_project!, only: %i[upload download]
-  before_action :find_directory!, only: %i[upload]
-  before_action :find_project_user!, only: %i[download]
+  before_action :find_directory_file!,
+    only: %i[show update destroy analyze download attendance update_attendance contacts]
 
-  # GET /v1/directory_file/:hashid
+  before_action :find_project!, only: %i[show upload download]
+  before_action :find_directory!, only: %i[upload]
+  before_action :find_project_user!, only: %i[show download]
+
+  # GET /v1/directory_file/:hashid?project_id=:project_id 
   def show
-    render json: format_file(@directory_file).to_json, status: :ok
+    render json: DirectoryFileSerializer.new(
+      @directory_file
+    ).serializable_hash.merge(meta: { admin: @project_user.admin? }), status: :ok
   end
 
   # PUT /v1/projects/:hashid
@@ -97,6 +101,53 @@ class V1::DirectoryFilesController < V1::BaseController
       render json: { url: url }, status: :ok
     else
       render json: { message: "Unauthorized" }, status: :unauthorized
+    end
+  end
+
+  def attendance
+    attendees = @directory_file.meeting_attendances.where.not(status: 0).map do |attendance|
+      { value: attendance.contact.full_name_lookup, label: attendance.contact.full_name }
+    end
+
+    render json: attendees, status: :ok
+  end
+
+  # POST /v1/directory_file/:hashid/update_attendance
+  def update_attendance
+    contact_keys = params[:contact_keys].split(', ')
+    contacts     = Contact.where(full_name_lookup: contact_keys)
+
+    attendance_data = contacts.map do |contact|
+      {
+        contact_id: contact.id,
+        directory_file_id: @directory_file.id,
+        status: MeetingAttendance.statuses[:present],
+        created_at: Time.current,
+        updated_at: Time.current
+      }
+    end
+
+    MeetingAttendance.upsert_all(
+      attendance_data,
+      unique_by: 'index_meeting_attendances_on_contact_id_and_directory_file_id'
+    )
+
+    @directory_file.meeting_attendances.where.not(contact: contacts).destroy_all
+    
+    render json: @directory_file.contacts, status: :ok
+  end
+
+  def contacts
+    project = Project.find(@directory_file.project_id)
+
+    if project.present?
+      data = project.contacts.order('first_name ASC').map do |contact|
+        { value: contact.full_name_lookup, label: contact.full_name }
+      end
+
+      render json: data, status: :ok
+    else
+      render json: { message: "Project not found" }, status: :not_found
     end
   end
 

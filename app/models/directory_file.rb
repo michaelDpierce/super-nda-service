@@ -15,6 +15,9 @@ class DirectoryFile < ApplicationRecord
 
   has_one :project, through: :directory, source: :project
 
+  has_many :meeting_attendances
+  has_many :contacts, through: :meeting_attendances
+
   enum conversion_status: { pending: 0, in_progress: 1, completed: 2, failed: 3, not_supported: 4 }
 
   def docx_file?
