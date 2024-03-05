@@ -162,9 +162,8 @@ class V1::ProjectsController < V1::BaseController
 
     tag_list = ActsAsTaggableOn::Tag.joins(:taggings)
       .where(taggings: { taggable_id: directory_file_ids, taggable_type: "DirectoryFile" })
-      .select("distinct tags.name")
-      .pluck(:name)
-        
+      .pluck(Arel.sql("DISTINCT tags.name"))
+
     render(json: { data: tag_list })
   end
 
