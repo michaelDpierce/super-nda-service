@@ -37,6 +37,7 @@ class MetaDataJob
           text = reader.pages.map(&:text).join("\n")
 
           text = text.squish
+          text = text.gsub("\u0000", "") # Remove null characters
 
           Rails.logger.info "Updaing Database with Text: #{text}"
           df.update(content: text)
@@ -79,7 +80,9 @@ class MetaDataJob
   end
 
   def update_conversion_status(df)
-    unless df.docx_file?
+    if df.docx_file?
+      df.update(conversion_status: :pending)
+    else
       df.update(conversion_status: :not_supported)
     end
   end

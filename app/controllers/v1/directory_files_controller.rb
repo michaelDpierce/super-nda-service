@@ -12,39 +12,49 @@ class V1::DirectoryFilesController < V1::BaseController
 
   # GET /v1/directory_file/:hashid?project_id=:project_id 
   def show
-    render json: DirectoryFileSerializer.new(
-      @directory_file
-    ).serializable_hash.merge(meta: { admin: @project_user.admin? }), status: :ok
+    render json:
+      DirectoryFileSerializer.new(
+        @directory_file
+      )
+      .serializable_hash.merge(
+        meta: { admin: @project_user.admin? }
+      ),
+      status: :ok
   end
 
   # PUT /v1/projects/:hashid
   # PATCH /v1/projects/:hashid
   def update
-    if @directory_file.update(directory_file_params)
-      new_file = params[:file] if params[:file].present?
-
-      if @directory_file.file.attached? && new_file.present?
-        @directory_file.file.attach(new_file)
-        @directory_file.save!
-  
-        MetaDataJob.perform_async(@directory_file.try(:id), @current_user.id)
-
-        if @directory_file.docx_file?
-          ConvertFileJob.perform_async(@directory_file.try(:id), @current_user.id)
-        end
-      end
-
-      render json: @directory_file.to_json, status: :ok
+    if params[:file].present?
+      handle_new_file_attachment
     else
-      render json: { errors: @directory_file.errors.messages },
-             status: :unprocessable_entity
+      unless @directory_file.update(directory_file_params)
+        return render json: { errors: @directory_file.errors.messages }, status: :unprocessable_entity
+      end
     end
+    
+    render json: DirectoryFileSerializer.new(@directory_file), status: :ok
   end
 
   # DELETE /v1/directory_file/:hashid
   def destroy
-    @directory_file.destroy!
+    file_id = @directory_file&.file&.id
+    converted_file_id = @directory_file&.converted_file&.id
+
+    ActiveRecord::Base.transaction do
+      @directory_file.meeting_attendances.each do |attendance|
+        attendance.destroy!
+      end
+      
+      @directory_file.destroy!
+    end
+    
+    DestroyAttachmentJob.perform_async(file_id) if file_id
+    DestroyAttachmentJob.perform_async(@directory_file.converted_file.id) if converted_file_id 
+  
     head(:no_content)
+  rescue ActiveRecord::RecordNotDestroyed => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   # POST /v1/directory_files/upload
@@ -65,6 +75,11 @@ class V1::DirectoryFilesController < V1::BaseController
           )
 
         directory_file.file.attach(file)
+
+        unless directory_file.docx_file?
+          directory_file.conversion_status = :not_supported
+        end
+
         directory_file.save!
 
         records.push(format_file(directory_file))
@@ -173,6 +188,41 @@ class V1::DirectoryFilesController < V1::BaseController
 
   def find_project_user!
     @project_user = ProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
+  end
+
+  def handle_new_file_attachment
+    new_file = params[:file]
+
+    if new_file.present?
+      existing_extension = @directory_file.file.filename.extension.downcase if @directory_file.file.attached?
+      
+      new_extension = File.extname(new_file.original_filename).delete_prefix('.').downcase
+      
+      if existing_extension != new_extension
+        Rails.logger.info "Extension change detected: from .#{existing_extension} to .#{new_extension}"
+      end
+    
+      @directory_file.file.attach(new_file)
+      
+      if new_extension == 'docx'
+        @directory_file.conversion_status = :pending
+      else
+        @directory_file.conversion_status = :not_supported
+      end
+
+      @directory_file.save!
+    
+      MetaDataJob.perform_async(@directory_file.id, @current_user.id)
+    
+      if new_extension == 'docx'
+        ConvertFileJob.perform_async(@directory_file.id, @current_user.id)
+      else
+        if @directory_file.converted_file.attached?
+          @directory_file.converted_file.purge
+          Rails.logger.info "Old converted file cleared for DirectoryFile id=#{@directory_file.id}"
+        end
+      end
+    end
   end
 
   def format_file(record)

@@ -156,15 +156,24 @@ class V1::ProjectsController < V1::BaseController
     render(json: { data: service.data })
   end
 
-  # GET /v1/projects/:hashid/tags
+  # GET /v1/projects/:hashid/tags?directory_file_id=:directory_file_id
   def tags
     directory_file_ids = @project.directory_files.pluck(:id)
+    
+    if params[:directory_file_id].present?
+      df = DirectoryFile.find(params[:directory_file_id])
 
-    tag_list = ActsAsTaggableOn::Tag.joins(:taggings)
+      selected_tags = df.tags.order(:name).pluck(:name)
+    else
+      selected_tags = []
+    end
+
+    tags = ActsAsTaggableOn::Tag.joins(:taggings)
       .where(taggings: { taggable_id: directory_file_ids, taggable_type: "DirectoryFile" })
+      .order('tags.name ASC')
       .pluck(Arel.sql("DISTINCT tags.name"))
 
-    render(json: { data: tag_list })
+    render(json: { tags: tags, selected_tags: selected_tags  })
   end
 
   # GET /v1/projects/:hashid/export

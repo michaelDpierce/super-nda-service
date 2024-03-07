@@ -18,6 +18,7 @@ class ProjectFolderService
 
   def build_directory
     directory = @project.directories.find(@directory_id)
+    project_id = @project.hashid
 
     if directory.has_parent? == true
       records =  [
@@ -27,7 +28,7 @@ class ProjectFolderService
           name: ".. GO BACK",
           date: nil,
           extension: "-",
-          type: "folder"
+          type: "navigation"
         }
       ]
     else
@@ -51,7 +52,8 @@ class ProjectFolderService
           date: d&.created_at,
           extension: "-",
           type: "folder",
-          directory_id: d.id
+          directory_id: d.id,
+          project_id: project_id
         }
       )
     end
@@ -87,7 +89,7 @@ class ProjectFolderService
       end
 
       filename = df.filename.to_s 
-      extension = File.extname(filename).to_s
+      extension = File.extname(df.file.filename.to_s).to_s
       cleanFilename = File.basename(filename, extension).to_s
 
       records.push(
@@ -108,13 +110,14 @@ class ProjectFolderService
           convertedFile: df.converted_file.attached?,
           committee: df.committee,
           directory_id: df.directory.hashid,
-          published: df.published
+          published: df.published,
+          project_id: project_id
         }
       )
     end
 
     sorted_records = records.sort_by do |record|
-      [record[:type] == "folder" ? 0 : 1, record[:name].downcase]
+      [(record[:type] == "folder" || record[:type] == "navigation") ? 0 : 1, record[:name].downcase]
     end
 
     {

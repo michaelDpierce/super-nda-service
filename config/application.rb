@@ -31,6 +31,9 @@ module MinuteBookService
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # Batch Destroy
+    config.active_record.destroy_association_async_batch_size = 100
+
     Rails.application.routes.default_url_options[:protocol] = ENV["SERVER_PROTOCOL"]
     Rails.application.routes.default_url_options[:host] = ENV["SERVER_HOST"]
   end
