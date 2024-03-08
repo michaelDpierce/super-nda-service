@@ -53,6 +53,7 @@ Rails.application.routes.draw do
         get :attendance
         get :contacts
         post :update_attendance
+        get :redline
       end
     end
 

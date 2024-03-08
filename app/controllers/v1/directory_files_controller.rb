@@ -4,7 +4,7 @@
 
 class V1::DirectoryFilesController < V1::BaseController
   before_action :find_directory_file!,
-    only: %i[show update destroy analyze download attendance update_attendance contacts]
+    only: %i[show update destroy analyze download attendance update_attendance contacts redline]
 
   before_action :find_project!, only: %i[show upload download]
   before_action :find_directory!, only: %i[upload]
@@ -97,11 +97,10 @@ class V1::DirectoryFilesController < V1::BaseController
     end
   end
 
-  # GET /v1/directory_file/:hashid/download
+  # GET /v1/directory_file/:hashid/download?project_id=:project_id&accepted_track_change_file_download=:boolean
   def download
     if @project_user.present?
-     file =
-      @project_user.admin? ? @directory_file.file : @directory_file.converted_file
+      file =  @project_user.admin? ? @directory_file.file  : @directory_file.converted_file
 
       url = if Rails.env.development?
         Rails.application.routes.url_helpers.rails_blob_url(
@@ -117,6 +116,13 @@ class V1::DirectoryFilesController < V1::BaseController
     else
       render json: { message: "Unauthorized" }, status: :unauthorized
     end
+  end
+
+  # GET /v1/directory_file/:hashid/redline
+  def redline
+    AcceptTrackChangesJob.perform_async(@directory_file.id)
+
+    render json: { message: 'success' }, status: :ok
   end
 
   def attendance

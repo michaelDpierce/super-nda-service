@@ -14,6 +14,8 @@ class DirectoryFile < ApplicationRecord
 
   has_one_attached :file # CRUD Delete Job
   has_one_attached :converted_file # CRUD Delete Job
+  has_one_attached :accepted_changes_file # TODO spike
+  # has_one_attached :repaired_file # TODO spike
 
   has_one :project, through: :directory, source: :project
 

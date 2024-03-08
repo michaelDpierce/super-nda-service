@@ -307,6 +307,7 @@ DEPENDENCIES
   convert_api (= 1.4.0)
   docx (= 0.8.0)
   dotenv-rails (= 3.1.0)
+  faraday
   fast_jsonapi (= 1.5)
   hashid-rails (= 1.4.1)
   image_processing (= 1.12.2)

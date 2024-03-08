@@ -23,9 +23,10 @@ gem "pg_search", "2.3.6"
 gem "pg", "1.5.5"
 gem "rack-cors", "2.0.1"
 gem "rails", "7.1.3.2"
+gem "redis-rails", "5.0.2"
 gem "ruby-openai", "6.3.1"
 gem "sidekiq", "7.2.2"
-gem "redis-rails", "5.0.2"
+gem "faraday"
 
 group :development do
   gem "puma", "6.4.2"
