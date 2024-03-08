@@ -4,7 +4,7 @@
 
 class V1::DirectoryFilesController < V1::BaseController
   before_action :find_directory_file!,
-    only: %i[show update destroy analyze download attendance update_attendance contacts redline]
+    only: %i[show update destroy analyze download attendance update_attendance contacts]
 
   before_action :find_project!, only: %i[show upload download]
   before_action :find_directory!, only: %i[upload]
@@ -116,13 +116,6 @@ class V1::DirectoryFilesController < V1::BaseController
     else
       render json: { message: "Unauthorized" }, status: :unauthorized
     end
-  end
-
-  # GET /v1/directory_file/:hashid/redline
-  def redline
-    AcceptTrackChangesJob.perform_async(@directory_file.id)
-
-    render json: { message: 'success' }, status: :ok
   end
 
   def attendance
