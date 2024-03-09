@@ -25,7 +25,7 @@ class ProjectFolderService
         {
           hashid: Directory.find(directory&.parent_id).hashid,
           key: "folder-#{directory.hashid}",
-          name: ".. GO BACK",
+          name: "BACK",
           date: nil,
           extension: "-",
           type: "navigation"
