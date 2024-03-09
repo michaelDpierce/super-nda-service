@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
 require "csv"
@@ -10,11 +10,8 @@ class V1::ProjectsController < V1::BaseController
       show
       update
       destroy
-      folder
-      tags
       export
       create_project_user
-      create_project_contact
       check_admin
     ]
 
@@ -23,11 +20,8 @@ class V1::ProjectsController < V1::BaseController
       show
       update
       destroy
-      folder
-      tags
       export
       create_project_user
-      create_project_contact
       check_admin
     ]
 
@@ -53,8 +47,7 @@ class V1::ProjectsController < V1::BaseController
     service =
       CreateProjectService.new(
         @current_user,
-        create_project_params,
-        request&.remote_ip
+        create_project_params
       )
 
     service.call
@@ -124,92 +117,18 @@ class V1::ProjectsController < V1::BaseController
   # GET /v1/search
   def search
     service = 
-      if params[:project_id].present?
-        project = @current_user.projects_with_access.find(params[:project_id])
-
-         ProjectSearchService.new(
-          params[:q],
-          project.id
-        )
-      else
-        SearchService.new(
-          @current_user.id,
-          { q: params[:q] },
-          params[:limit] || 10
-        )
-      end
+      SearchService.new(
+        @current_user.id,
+        { q: params[:q] },
+        params[:limit] || 10
+      )
   
     render(json: { result: service.result, status: service.status })
   end
 
-  # GET /v1/projects/:hashid/folder/:directory_id
-  def folder
-    directory_id = if params[:directory_id].present?
-      params[:directory_id]
-    else
-      @project.directories.root.id
-    end
-
-    service =
-      ProjectFolderService.new(@project, directory_id, @current_user)
-      
-    render(json: { data: service.data })
-  end
-
-  # GET /v1/projects/:hashid/tags?directory_file_id=:directory_file_id
-  def tags
-    directory_file_ids = @project.directory_files.pluck(:id)
-    
-    if params[:directory_file_id].present?
-      df = DirectoryFile.find(params[:directory_file_id])
-
-      selected_tags = df.tags.order(:name).pluck(:name)
-    else
-      selected_tags = []
-    end
-
-    tags = ActsAsTaggableOn::Tag.joins(:taggings)
-      .where(taggings: { taggable_id: directory_file_ids, taggable_type: "DirectoryFile" })
-      .order('tags.name ASC')
-      .pluck(Arel.sql("DISTINCT tags.name"))
-
-    render(json: { tags: tags, selected_tags: selected_tags  })
-  end
-
   # GET /v1/projects/:hashid/export
   def export
-    dfs = @project.directory_files
-    directories = Directory.where(project_id: @project.id)
-
-    data = CSV.generate(headers: true) do |csv|
-      csv << [
-        "Name",
-        "Directory",
-        "Created At",
-        "Updated At",
-        "Date",
-        "User",
-        "Published?",
-        "Tags",
-        "Committee"
-      ]
-
-      dfs.each do |df|
-        csv << [
-          df.filename,
-          directories.find(df.directory_id)&.try(:name),
-          df.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          df.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          df.display_date.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          df.user.try(:email),
-          df.published ? "Y" : "N",
-          df.tag_list.join(", ").to_s,
-          df.committee
-        ]
-      end
-    end
-
-    send_data data, filename: "report.csv", type: "text/csv"
+    # send_data data, filename: "report.csv", type: "text/csv"
   end
 
   # POST /v1/projects/:hashid/create_project_user
@@ -234,39 +153,6 @@ class V1::ProjectsController < V1::BaseController
     end
   rescue ActiveRecord::RecordInvalid => e
     render(json: { error: e.message }, status: :unprocessable_entity)
-  end
-
-  # POST /v1/projects/:hashid/create_project_contact
-  def create_project_contact
-    ActiveRecord::Base.transaction do
-      full_name_lookup = "#{params["data"]["firstName"]}#{params["data"]["lastName"]}"
-                          .gsub(/[^A-Za-z0-9]/, '')
-                          .downcase
-    
-      contact = Contact.find_or_create_by!(full_name_lookup: full_name_lookup) do |c|
-        c.prefix = params["data"]["prefix"]
-        c.first_name = params["data"]["firstName"]
-        c.last_name = params["data"]["lastName"]
-      end
-    
-      existing_project_contact =
-        ProjectContact.find_by(contact_id: contact.id, project_id: @project.id)
-    
-      if existing_project_contact.nil?
-        role = params["data"]["role"] || nil
-
-        project_contact =
-          ProjectContact.create!(
-            contact_id: contact.id,
-            project_id: @project.id,
-            role: role
-          )
-    
-        render(json: { data: project_contact }, status: :created)
-      else
-        render(json: { error: 'This contact is already associated with the project.' }, status: :unprocessable_entity)
-      end
-    end
   end
 
   # GET /v1/projects/:hashid/check_admin

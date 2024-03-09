@@ -1,6 +1,5 @@
 # ==============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # ==============================================================================
 
 REGEX_PATTERN = /[^0-9a-zA-Z&\-. ]/.freeze
-ROOT_SLUG = "root".freeze

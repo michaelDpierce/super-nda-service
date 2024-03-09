@@ -1,5 +1,5 @@
 # ==============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # ==============================================================================
 
 class AuthService
@@ -11,7 +11,7 @@ class AuthService
     @status = :ok
   end
 
-  def find_or_create_user_by(token:, ip:)
+  def find_or_create_user_by(token:)
     sdk       = Clerk::SDK.new
     payout    = sdk.decode_token(token)
     user_data = sdk.users.find(payout["sub"])

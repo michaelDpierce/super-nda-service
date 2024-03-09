@@ -1,8 +1,8 @@
 # =============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
 class ApplicationMailer < ActionMailer::Base
-  default from: "from@example.com"
+  default from: "no-reply@supernda .com"
   layout "mailer"
 end

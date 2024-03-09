@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
 class Project < ApplicationRecord
@@ -26,15 +26,6 @@ class Project < ApplicationRecord
 
   has_many :admin_project_users, -> { with_admin }, class_name: "ProjectUser"
   has_many :admin_users, source: :user, through: :admin_project_users
-
-  belongs_to :contact, optional: true
-
-  has_many :project_contacts, dependent: :destroy_async
-  has_many :contacts, through: :project_contacts
-
-  has_many :directories, dependent: :destroy_async
-  has_many :files, through: :directories
-  has_many :directory_files, through: :directories
 
   has_one_attached :logo, dependent: :destroy_async
 

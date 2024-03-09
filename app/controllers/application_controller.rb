@@ -1,3 +1,7 @@
+# =============================================================================
+# Copyright 2024, SuperNDA. All rights reserved.
+# =============================================================================
+
 class ApplicationController < ActionController::API
   before_action :set_paper_trail_whodunnit
 

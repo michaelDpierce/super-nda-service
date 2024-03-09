@@ -1,12 +1,11 @@
 # ==============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # ==============================================================================
 
 module HelperConcern
   extend ActiveSupport::Concern
   include Pagy::Backend
 
-  # add include PgSearch::Model to model where you want to use this method
   def basic_search_resource_by!
     return if params[:q].blank?
 

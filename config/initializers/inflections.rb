@@ -1,5 +1,5 @@
 # ==============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # ==============================================================================
 
 # Be sure to restart your server when you modify this file.

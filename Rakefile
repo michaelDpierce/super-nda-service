@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
 # Add your own tasks in files placed in lib/tasks ending in .rake,

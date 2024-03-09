@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_05_173545) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_09_211654) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,59 +42,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_05_173545) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
-  create_table "contacts", force: :cascade do |t|
-    t.string "prefix"
-    t.string "first_name"
-    t.string "last_name"
-    t.string "email"
-    t.string "phone"
-    t.string "formal_name_lookup"
-    t.string "full_name_lookup"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-  end
-
-  create_table "directories", force: :cascade do |t|
-    t.string "name"
-    t.integer "project_id"
-    t.string "slug"
-    t.string "ancestry"
-    t.integer "ancestry_depth", default: 0
-    t.integer "user_id"
-    t.datetime "created_at", precision: nil
-    t.datetime "updated_at", precision: nil
-    t.index ["ancestry"], name: "index_directories_on_ancestry"
-    t.index ["project_id"], name: "index_directories_on_project_id"
-    t.index ["slug", "project_id", "ancestry"], name: "index_directories_on_slug_and_project_id_and_ancestry", unique: true
-    t.index ["slug"], name: "index_directories_on_slug"
-  end
-
-  create_table "directory_files", force: :cascade do |t|
-    t.integer "directory_id"
-    t.integer "user_id"
-    t.integer "project_id"
-    t.string "filename"
-    t.datetime "created_at", precision: nil
-    t.datetime "updated_at", precision: nil
-    t.datetime "display_date", precision: nil
-    t.text "content"
-    t.integer "conversion_status", default: 0
-    t.string "committee", default: "None"
-    t.boolean "published", default: false
-    t.index ["directory_id"], name: "index_directory_files_on_directory_id"
-  end
-
-  create_table "meeting_attendances", force: :cascade do |t|
-    t.integer "status"
-    t.bigint "contact_id", null: false
-    t.bigint "directory_file_id", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["contact_id", "directory_file_id"], name: "index_meeting_attendances_on_contact_id_and_directory_file_id", unique: true
-    t.index ["contact_id"], name: "index_meeting_attendances_on_contact_id"
-    t.index ["directory_file_id"], name: "index_meeting_attendances_on_directory_file_id"
-  end
-
   create_table "pg_search_documents", force: :cascade do |t|
     t.text "content"
     t.string "searchable_type"
@@ -102,16 +49,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_05_173545) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["searchable_type", "searchable_id"], name: "index_pg_search_documents_on_searchable"
-  end
-
-  create_table "project_contacts", force: :cascade do |t|
-    t.integer "project_id"
-    t.integer "contact_id"
-    t.string "role"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["project_id", "contact_id"], name: "index_project_contacts_on_project_id_and_contact_id", unique: true
-    t.index ["project_id"], name: "index_project_contacts_on_project_id"
   end
 
   create_table "project_users", force: :cascade do |t|
@@ -131,37 +68,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_05_173545) do
     t.integer "status", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-  end
-
-  create_table "taggings", force: :cascade do |t|
-    t.bigint "tag_id"
-    t.string "taggable_type"
-    t.bigint "taggable_id"
-    t.string "tagger_type"
-    t.bigint "tagger_id"
-    t.string "context", limit: 128
-    t.datetime "created_at", precision: nil
-    t.string "tenant", limit: 128
-    t.index ["context"], name: "index_taggings_on_context"
-    t.index ["tag_id", "taggable_id", "taggable_type", "context", "tagger_id", "tagger_type"], name: "taggings_idx", unique: true
-    t.index ["tag_id"], name: "index_taggings_on_tag_id"
-    t.index ["taggable_id", "taggable_type", "context"], name: "taggings_taggable_context_idx"
-    t.index ["taggable_id", "taggable_type", "tagger_id", "context"], name: "taggings_idy"
-    t.index ["taggable_id"], name: "index_taggings_on_taggable_id"
-    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable_type_and_taggable_id"
-    t.index ["taggable_type"], name: "index_taggings_on_taggable_type"
-    t.index ["tagger_id", "tagger_type"], name: "index_taggings_on_tagger_id_and_tagger_type"
-    t.index ["tagger_id"], name: "index_taggings_on_tagger_id"
-    t.index ["tagger_type", "tagger_id"], name: "index_taggings_on_tagger_type_and_tagger_id"
-    t.index ["tenant"], name: "index_taggings_on_tenant"
-  end
-
-  create_table "tags", force: :cascade do |t|
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "taggings_count", default: 0
-    t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -190,7 +96,4 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_05_173545) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "meeting_attendances", "contacts"
-  add_foreign_key "meeting_attendances", "directory_files"
-  add_foreign_key "taggings", "tags"
 end

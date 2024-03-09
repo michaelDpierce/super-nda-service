@@ -1,5 +1,5 @@
 # =============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
 class V1::ProjectUsersController < V1::BaseController
@@ -14,7 +14,11 @@ class V1::ProjectUsersController < V1::BaseController
         ProjectUsersSerializer.new(
           @project.project_users,
           includes: :user
-        ).serializable_hash.merge(meta: { current_user_id: @current_user.hashid, admin: @project_user.admin? }),
+        ).serializable_hash.merge(
+          meta: { 
+            current_user_id: @current_user.hashid,
+            admin: @project_user.admin?
+          }),
       status: :ok
     )
   end
@@ -48,7 +52,8 @@ class V1::ProjectUsersController < V1::BaseController
   end
 
   def load_project_user
-    @project_user = ProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
+    @project_user =
+    qProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
   end
 
   def find_project_user

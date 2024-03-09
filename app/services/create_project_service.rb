@@ -1,15 +1,14 @@
 # =============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
 class CreateProjectService
   attr_reader :result
   attr_reader :status
 
-  def initialize(user, params, ip=0)
+  def initialize(user, params)
     @user   = user
     @params = params
-    @ip     = ip
 
     @result = {}
     @status = 201
@@ -24,7 +23,6 @@ class CreateProjectService
 
       if @project.save
         assign_project_user!
-        create_root_directory!
         @result = ProjectSerializer.new(@project).serialized_json
       else
         @status = :unprocessable_entity
@@ -44,15 +42,5 @@ class CreateProjectService
       admin: true,
       access: true
     )
-  end
-
-  def create_root_directory!
-    Directory
-      .create!(
-        user_id: @user.id,
-        slug: ROOT_SLUG,
-        project_id: @project.id,
-        name: @project.name
-      )
   end
 end

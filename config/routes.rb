@@ -1,6 +1,6 @@
 
 # =============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
 require "sidekiq/web"
@@ -21,43 +21,18 @@ Rails.application.routes.draw do
     # Authentication
     resources :auth, only: [:create]
 
-    # Contact management
-    resources :contacts, only: [:show, :update]
-
     # Project management
     resources :projects, only: [:index, :show, :create, :update, :destroy] do
-      # Nested directory management within projects
-      resources :directories, only: [:create, :update, :destroy]
-
       # Project-specific routes
-      get :folder, on: :member
-      get :tags, on: :member
       get :export, on: :member
       post :create_project_user, on: :member
-      post :create_project_contact, on: :member
       get :check_admin, on: :member
     end
 
     # Project search
     get :search, to: "projects#search"
 
-    # Directory file management
-    resources :directory_files, except: [:new, :edit] do
-      collection do
-        post :upload
-      end
-
-      member do
-        get :analyze
-        get :download
-        get :attendance
-        get :contacts
-        post :update_attendance
-      end
-    end
-
-    # Project contacts and users
-    resources :project_contacts, only: [:index, :update, :destroy]
+    # Project users
     resources :project_users, only: [:index, :update, :destroy]
   end
 end

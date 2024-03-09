@@ -1,5 +1,5 @@
 # ==============================================================================
-# Copyright 2024, MinuteBook. All rights reserved.
+# Copyright 2024, SuperNDA. All rights reserved.
 # ==============================================================================
 
 default: &default
@@ -13,11 +13,11 @@ default: &default
 
 development:
   <<: *default
-  database: minute_book_service_development
+  database: super_nda_service_development
 
 test:
   <<: *default
-  database: minute_book_service_test
+  database: super_nda_service_test
 
 production:
   <<: *default
