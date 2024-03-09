@@ -3,6 +3,8 @@ production:
     configuration:
       asset_pipeline_precompile: false
       ruby_version: 3.3.0
-  postgresql:
+
+databases:
+  - postgresql:
     configuration:
       tamper_with_yml: false
