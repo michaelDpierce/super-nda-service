@@ -153,12 +153,17 @@ class V1::ProjectsController < V1::BaseController
   
       user = User.find_or_create_by!(email: email) do |user|
         user.first_name = params["data"]["first_name"] if params["data"]["first_name"].present?
-        user.last_name = params["data"]["last_name"] if params["data"]["last_name"].present?
-        user.title = params["data"]["title"] if params["data"]["title"].present?
+        user.last_name  = params["data"]["last_name"]  if params["data"]["last_name"].present?
+        user.title      = params["data"]["title"]      if params["data"]["title"].present?
       end
     
       project_user =
-        ProjectUser.create!(user_id: user.id, project_id: @project.id)
+        ProjectUser.create!(
+          user_id: user.id,
+          project_id: @project.id,
+          admin: params["data"]["admin"],
+          access: params["data"]["access"]
+        )
   
       render(
         json: ProjectUsersSerializer.new(project_user, includes: :user),
