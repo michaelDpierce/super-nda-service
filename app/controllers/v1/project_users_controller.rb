@@ -7,12 +7,12 @@ class V1::ProjectUsersController < V1::BaseController
   before_action :load_project_user, only: %i[index]
   before_action :find_project_user, only: %i[update destroy]
 
-   # GET /v1/projects/:hashid/project_users
+   # GET /v1/project_users
   def index
     render(
       json:
         ProjectUsersSerializer.new(
-          @project.project_users,
+          @project.project_users.includes(:user).joins(:user).where.not(users: { id: nil }).order('users.email ASC'),
           includes: :user
         ).serializable_hash.merge(
           meta: { 
@@ -21,7 +21,7 @@ class V1::ProjectUsersController < V1::BaseController
           }),
       status: :ok
     )
-  end
+  end 
 
   # PUT /v1/project_users/:hashid
   def update    
@@ -53,7 +53,7 @@ class V1::ProjectUsersController < V1::BaseController
 
   def load_project_user
     @project_user =
-    qProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
+      ProjectUser.find_by(project_id: @project.id, user_id: @current_user.id)
   end
 
   def find_project_user

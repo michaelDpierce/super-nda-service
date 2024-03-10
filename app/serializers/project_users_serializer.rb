@@ -16,6 +16,14 @@ class ProjectUsersSerializer < ApplicationSerializer
     object.user.hashid
   end
 
+  attribute :email do |object|
+    object.user.email
+  end
+
+  attribute :domain do |object|
+    object.user.domain
+  end
+  
   attribute :first_name do |object|
     object.user.first_name || "-"
   end
@@ -24,11 +32,15 @@ class ProjectUsersSerializer < ApplicationSerializer
     object.user.last_name || "-"
   end
 
-  attribute :email do |object|
-    object.user.email
+  attribute :title do |object|
+    object.user.title || "-"
   end
 
   attribute :last_login do |object|
     object.user.last_login
+  end
+
+  attribute :created_account do |object|
+    object.user.source_id ? true : false
   end
 end
