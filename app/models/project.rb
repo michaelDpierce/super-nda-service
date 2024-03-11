@@ -33,4 +33,10 @@ class Project < ApplicationRecord
     active: 0,
     archived: 1
   }
+
+  enum action: {
+    editing: 0, # Party is editing the project
+    waiting: 1, # Party is waiting for counter parties to edit the project
+    done: 2 # Parties are done with this project
+  }
 end

@@ -201,7 +201,7 @@ class V1::ProjectsController < V1::BaseController
   def update_project_params
     params
       .require(:project)
-      .permit(:name, :description, :logo, :status)
+      .permit(:name, :description, :logo, :status, :action)
       .select { |x,v| v.present? }
   end
 
