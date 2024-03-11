@@ -59,7 +59,7 @@ class V1::ProjectsController < V1::BaseController
     options = {
       params: {
         permissions: {
-          isAdmin: @project_user.try(:admin)
+          admin: @project_user.try(:admin)
         },
         meta: {
           current_user_id: @current_user.try(:id),
