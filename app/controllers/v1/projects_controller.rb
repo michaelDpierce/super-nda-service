@@ -195,13 +195,13 @@ class V1::ProjectsController < V1::BaseController
   end
 
   def create_project_params
-    params.require(:project).permit(:name, :description, :user_id)
+    params.require(:project).permit(:name, :description, :user_id, :template)
   end
 
   def update_project_params
     params
       .require(:project)
-      .permit(:name, :description, :logo, :status, :action)
+      .permit(:name, :description, :status, :action, :logo, :template)
       .select { |x,v| v.present? }
   end
 
