@@ -19,10 +19,6 @@ class ProjectUsersSerializer < ApplicationSerializer
   attribute :email do |object|
     object.user.email
   end
-
-  attribute :domain do |object|
-    object.user.domain
-  end
   
   attribute :first_name do |object|
     object.user.first_name || "-"
@@ -30,10 +26,6 @@ class ProjectUsersSerializer < ApplicationSerializer
 
   attribute :last_name do |object|
     object.user.last_name || "-"
-  end
-
-  attribute :title do |object|
-    object.user.title || "-"
   end
 
   attribute :last_login do |object|

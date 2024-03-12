@@ -5,8 +5,6 @@
 class User < ApplicationRecord
   include Hashid::Rails
 
-  before_save :update_email_domain, if: :will_save_change_to_email?
-
   validates :email, presence: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :email, uniqueness: true
@@ -22,15 +20,5 @@ class User < ApplicationRecord
 
   def full_name
     "#{first_name} #{last_name}"
-  end
-
-  private
-
-  def update_email_domain
-    self.domain = extract_domain_from_email
-  end
-
-  def extract_domain_from_email
-    email.split('@').last
   end
 end
