@@ -26,6 +26,8 @@ Rails.application.routes.draw do
       # Project-specific routes
       get :export, on: :member
       post :create_project_user, on: :member
+      post :create_groups, on: :member
+      get :groups, on: :member
       get :check_admin, on: :member
     end
 
@@ -34,5 +36,8 @@ Rails.application.routes.draw do
 
     # Project users
     resources :project_users, only: [:index, :update, :destroy]
+
+    # Groups
+    resources :groups, only: [:create, :update, :destroy]
   end
 end

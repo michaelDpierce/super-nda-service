@@ -27,6 +27,8 @@ class Project < ApplicationRecord
   has_many :admin_project_users, -> { with_admin }, class_name: "ProjectUser"
   has_many :admin_users, source: :user, through: :admin_project_users
 
+  has_many :groups, dependent: :destroy
+
   has_one_attached :logo, dependent: :destroy_async
   has_one_attached :template, dependent: :destroy_async
 

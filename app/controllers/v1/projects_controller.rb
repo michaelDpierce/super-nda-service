@@ -12,6 +12,8 @@ class V1::ProjectsController < V1::BaseController
       destroy
       export
       create_project_user
+      create_groups
+      groups
       check_admin
     ]
 
@@ -22,6 +24,8 @@ class V1::ProjectsController < V1::BaseController
       destroy
       export
       create_project_user
+      create_groups
+      groups
       check_admin
     ]
 
@@ -72,7 +76,7 @@ class V1::ProjectsController < V1::BaseController
     if @project.present?
       LastViewedAtJob.perform_async(@project_user.id)
 
-      render json: ProjectSerializer.new(@project, options).serialized_json
+      render json: ProjectSerializer.new(@project, options)
     else
       render json: { message: "Project not found." }, status: :not_found
     end
@@ -101,7 +105,7 @@ class V1::ProjectsController < V1::BaseController
         ProjectArchiveJob.perform_async(@project.id)
       end
 
-      render json: ProjectSerializer.new(@project, options).serialized_json
+      render json: ProjectSerializer.new(@project, options)
     else
       render json: { errors: @project.errors.messages },
              status: :unprocessable_entity
@@ -172,6 +176,65 @@ class V1::ProjectsController < V1::BaseController
     end
   rescue ActiveRecord::RecordInvalid => e
     render(json: { error: e.message }, status: :unprocessable_entity)
+  end
+
+  # POST /v1/projects/:hashid/create_groups
+  def create_groups
+    group_names = params["data"]["group_names"].split(",")
+
+    puts group_names.inspect
+    puts group_names.class
+
+    existing_group_names = @project.groups.where(name: group_names).pluck(:name)
+    existing_count = existing_group_names.length
+  
+    puts existing_group_names
+
+    new_group_names = group_names - existing_group_names
+    new_groups = new_group_names.map do |name|
+      {
+        name: name,
+        project_id: @project.id,
+        user_id: @current_user.id,
+        created_at: Time.current,
+        updated_at: Time.current
+      }
+    end
+  
+    begin
+      @project.groups.insert_all(new_groups) if new_groups.any?
+      created_count = new_groups.length
+  
+      total_count = @project.groups.count
+  
+      render json: {
+        total_groups: total_count,
+        new_groups_created: created_count,
+        existing_groups: existing_count,
+        groups:
+          GroupsSerializer.new(
+            @project.groups.includes(:user), {}
+          ).serializable_hash
+      }, status: :created
+    rescue => e
+      render json: { 
+        error: "Failed to create groups: #{e.message}"
+      }, status: :unprocessable_entity
+    end
+  end
+
+  def groups
+    render json:
+      GroupsSerializer.new(
+        @project.groups.order(:name).includes(:user), {}
+      ).serializable_hash.merge(
+        statistics: { 
+          queued: @project.groups.queued.size, # 0
+          in_progress: @project.groups.where.not(status: [0, 6, 7, 8]).size,
+          passed: @project.groups.where(status: [7,8]).size,
+          completed: @project.groups.signed.size # 6
+        }),
+    status: :ok
   end
 
   # GET /v1/projects/:hashid/check_admin

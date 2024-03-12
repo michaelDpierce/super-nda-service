@@ -23,7 +23,7 @@ class CreateProjectService
 
       if @project.save
         assign_project_user!
-        @result = ProjectSerializer.new(@project).serialized_json
+        @result = ProjectSerializer.new(@project)
       else
         @status = :unprocessable_entity
         @result = @project.errors

@@ -20,6 +20,10 @@ class User < ApplicationRecord
     source: :project,
     through: :project_users_with_access
 
+  def full_name
+    "#{first_name} #{last_name}"
+  end
+
   private
 
   def update_email_domain
