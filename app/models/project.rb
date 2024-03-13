@@ -42,4 +42,13 @@ class Project < ApplicationRecord
     waiting: 1, # Party is waiting for counter parties to edit the project
     done: 2 # Parties are done with this project
   }
+
+  def statistics
+    {
+      queued: groups.queued.size, # 0
+      in_progress: groups.where.not(status: [:queued, :signed, :no_response, :passed]).size,
+      passed: groups.where(status: [:no_response, :passed]).size,
+      completed: groups.signed.size # 6
+    }
+  end
 end

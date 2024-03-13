@@ -181,14 +181,9 @@ class V1::ProjectsController < V1::BaseController
   def create_groups
     group_names = params["data"]["group_names"].split(",")
 
-    puts group_names.inspect
-    puts group_names.class
-
     existing_group_names = @project.groups.where(name: group_names).pluck(:name)
     existing_count = existing_group_names.length
   
-    puts existing_group_names
-
     new_group_names = group_names - existing_group_names
     new_groups = new_group_names.map do |name|
       {
@@ -213,7 +208,7 @@ class V1::ProjectsController < V1::BaseController
         groups:
           GroupsSerializer.new(
             @project.groups.includes(:user), {}
-          ).serializable_hash
+          )
       }, status: :created
     rescue => e
       render json: { 
@@ -223,17 +218,11 @@ class V1::ProjectsController < V1::BaseController
   end
 
   def groups
-    render json:
-      GroupsSerializer.new(
-        @project.groups.order(:name).includes(:user), {}
-      ).serializable_hash.merge(
-        statistics: { 
-          queued: @project.groups.queued.size, # 0
-          in_progress: @project.groups.where.not(status: [0, 6, 7, 8]).size,
-          passed: @project.groups.where(status: [7,8]).size,
-          completed: @project.groups.signed.size # 6
-        }),
-    status: :ok
+    groups            = @project.groups.includes(:user).order(:name)
+    serialized_groups = GroupsSerializer.new(groups).serializable_hash
+    statistics        = @project.statistics
+    
+    render json: serialized_groups.merge(statistics: statistics), status: :ok
   end
 
   # GET /v1/projects/:hashid/check_admin
