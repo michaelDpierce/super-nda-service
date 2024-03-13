@@ -6,6 +6,8 @@ class Project < ApplicationRecord
   include Hashid::Rails
   include PgSearch::Model
 
+  default_scope { order(name: :asc) }
+
   multisearchable against: [:name]
 
   pg_search_scope :main_search,
