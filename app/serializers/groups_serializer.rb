@@ -8,6 +8,10 @@ class GroupsSerializer < ApplicationSerializer
 
   attribute :name, :status, :notes, :created_at, :updated_at, :user_id, :progress
 
+  attribute :project_id do |object|
+    object.project.hashid
+  end
+
   attribute :user do |object|
     {
       id: object.user.hashid,

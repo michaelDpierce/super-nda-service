@@ -147,7 +147,7 @@ class V1::ProjectsController < V1::BaseController
 
   # GET /v1/projects/:hashid/export.csv
   def export
-    groups = @project.groups.includes(:user)
+    groups = @project.groups.includes(:user, :project)
 
     data = CSV.generate(headers: true) do |csv|
       csv << [
