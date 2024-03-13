@@ -85,7 +85,8 @@ class V1::ProjectsController < V1::BaseController
   # PUT /v1/projects/:hashid
   # PATCH /v1/projects/:hashid
   def update
-    was_not_archived = !@project.archived?
+    was_not_archived  = !@project.archived?
+    was_not_completed = !@project.completed?
 
     options = {
       params: {
@@ -105,10 +106,16 @@ class V1::ProjectsController < V1::BaseController
         ProjectArchiveJob.perform_async(@project.id)
       end
 
+      if was_not_completed && @project.completed?
+        @project.end_date = Time.current
+      elsif !@project.completed?
+        @project.end_date = nil
+      end
+      @project.save!
+
       render json: ProjectSerializer.new(@project, options)
     else
-      render json: { errors: @project.errors.messages },
-             status: :unprocessable_entity
+      render json: { errors: @project.errors.messages }, status: :unprocessable_entity
     end
   end
 

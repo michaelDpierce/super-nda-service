@@ -6,7 +6,7 @@ class ProjectSerializer < ApplicationSerializer
   set_id :hashid
   set_type :project
 
-  attribute :name, :description, :status, :action
+  attribute :name, :description, :status, :action, :start_date, :end_date
 
   attribute :permissions do |_, params|
     params[:permissions]

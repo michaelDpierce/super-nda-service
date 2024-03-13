@@ -34,7 +34,8 @@ class Project < ApplicationRecord
 
   enum status: {
     active: 0,
-    archived: 1
+    archived: 1,
+    completed: 2
   }
 
   enum action: {

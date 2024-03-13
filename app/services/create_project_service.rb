@@ -16,8 +16,9 @@ class CreateProjectService
 
   def call
     ActiveRecord::Base.transaction do
-      @project           = Project.new(@params)
-      @project[:user_id] = @user&.id
+      @project              = Project.new(@params)
+      @project[:user_id]    = @user&.id
+      @project[:start_date] = Time.now
 
       Rails.logger.info(@project.inspect)
 
