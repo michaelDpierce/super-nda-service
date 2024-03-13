@@ -3,6 +3,7 @@
 # =============================================================================
 
 class V1::BaseController < ApplicationController
+  include ActionController::MimeResponds
   include ApiExceptionHandler
   include VerificationUserConcern
   include HelperConcern
