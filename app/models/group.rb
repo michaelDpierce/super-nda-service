@@ -5,6 +5,8 @@
 class Group < ApplicationRecord
   include Hashid::Rails
 
+  default_scope { order(name: :asc) }
+
   belongs_to :project
   belongs_to :user
 

@@ -132,7 +132,33 @@ class V1::ProjectsController < V1::BaseController
 
   # GET /v1/projects/:hashid/export
   def export
-    # send_data data, filename: "report.csv", type: "text/csv"
+    groups = @project.groups.includes(:user)
+
+    data = CSV.generate(headers: true) do |csv|
+      csv << [
+        "Name",
+        "Status",
+        "Progress",
+        "Owner",
+        "Created At",
+        "Updated At",
+        "Notes"
+      ]
+
+      groups.each do |group|
+        csv << [
+          group.name,
+          group.status&.titleize,
+          group.progress&.titleize,
+          group.user.try(:email),
+          group.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          group.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          group.notes
+        ]
+      end
+    end
+
+    send_data data, filename: "report.csv", type: "text/csv"
   end
 
   # POST /v1/projects/:hashid/create_project_user
@@ -218,7 +244,7 @@ class V1::ProjectsController < V1::BaseController
   end
 
   def groups
-    groups            = @project.groups.includes(:user).order(:name)
+    groups            = @project.groups.includes(:user)
     serialized_groups = GroupsSerializer.new(groups).serializable_hash
     statistics        = @project.statistics
     
