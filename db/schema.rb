@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_13_192212) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_14_141828) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,6 +42,14 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_13_192212) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "documents", force: :cascade do |t|
+    t.bigint "group_id", null: false
+    t.string "state"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["group_id"], name: "index_documents_on_group_id"
+  end
+
   create_table "groups", force: :cascade do |t|
     t.string "name"
     t.integer "status", default: 0
@@ -50,6 +58,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_13_192212) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "code"
+    t.index ["code"], name: "index_groups_on_code"
     t.index ["project_id", "name", "status"], name: "index_groups_on_project_id_and_name_and_status"
   end
 
@@ -85,6 +95,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_13_192212) do
     t.datetime "end_date"
   end
 
+  create_table "revisions", force: :cascade do |t|
+    t.bigint "document_id", null: false
+    t.integer "revision_number"
+    t.integer "sub_revision_number"
+    t.string "side"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["document_id"], name: "index_revisions_on_document_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "timezone", default: "Eastern Time (US & Canada)"
@@ -111,4 +131,6 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_13_192212) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "documents", "groups"
+  add_foreign_key "revisions", "documents"
 end

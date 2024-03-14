@@ -12,6 +12,8 @@ class Group < ApplicationRecord
 
   validates :user_id, presence: true
 
+  has_many :documents, dependent: :destroy_async
+
   enum status: {
     queued: 0,
     teaser_sent: 1,

@@ -3,6 +3,7 @@
 # =============================================================================
 
 require "csv"
+require "securerandom"
 
 class V1::ProjectsController < V1::BaseController
   before_action :find_project,
@@ -262,6 +263,7 @@ class V1::ProjectsController < V1::BaseController
         name: name,
         project_id: @project.id,
         user_id: @current_user.id,
+        code: SecureRandom.random_number(100000..999999).to_s,
         created_at: Time.current,
         updated_at: Time.current
       }

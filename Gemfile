@@ -5,6 +5,7 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
+gem "aasm", "5.1.1"
 gem "aws-sdk-s3", "1.143.0", require: false
 gem "bootsnap", "1.18.3", require: false
 gem "clerk-sdk-ruby", "3.0.0", require: "clerk"

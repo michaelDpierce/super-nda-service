@@ -40,5 +40,8 @@ Rails.application.routes.draw do
 
     # Groups
     resources :groups, only: [:create, :update, :destroy]
+
+    # Share Links
+    post '/verify_code', to: 'sharing#verify_code'
   end
 end
