@@ -12,18 +12,6 @@ class ProjectUsersSerializer < ApplicationSerializer
             :created_at,
             :updated_at
 
-
-  attribute :logo do |object|
-    if object.logo.attached?
-      {
-        url: Rails.application.routes.url_helpers.rails_blob_url(object.logo),
-        name: object.logo.filename.to_s
-      }
-    end
-  rescue URI::InvalidURIError
-    nil
-  end
-
   attribute :user_id do |object|
     object.user.hashid
   end
