@@ -26,6 +26,31 @@ class Group < ApplicationRecord
     passed: 8
   }
 
+  def pretty_status
+    case status
+    when "queued"
+      "Queued"
+    when "teaser_sent"
+      "Teaser Sent"
+    when "nda_sent"
+      "NDA Sent"
+    when "redline_returned"
+      "Redline Returned"
+    when "redline_sent"
+      "Redline Sent"
+    when "ready_to_sign"
+      "Ready to Sign"
+    when "signed"
+      "Signed"
+    when "no_response"
+      "No Response"
+    when "passed"
+      "Passed"
+    else
+      "-"
+    end
+  end
+
   def progress
     case status
     when "queued"
@@ -37,7 +62,7 @@ class Group < ApplicationRecord
     when "signed"
       "completed"
     else
-      "unknown"
+      "-"
     end
   end
 end

@@ -164,7 +164,7 @@ class V1::ProjectsController < V1::BaseController
       groups.each do |group|
         csv << [
           group.name,
-          group.status&.titleize,
+          group.pretty_status,
           group.progress&.titleize,
           group.user.try(:email),
           group.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
@@ -195,7 +195,7 @@ class V1::ProjectsController < V1::BaseController
       groups.each do |group|
         csv << [
           group.name,
-          group.status&.titleize,
+          group.pretty_status,
           group.progress&.titleize,
           group.user.try(:email),
           group.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
@@ -292,7 +292,11 @@ class V1::ProjectsController < V1::BaseController
   end
 
   def groups
-    groups            = @project.groups.includes(:user)
+    groups =
+      @project.groups
+        .includes(:user)
+        # .order(Arel.sql("CASE WHEN status NOT IN (7, 8) THEN 0 ELSE 1 END, name ASC"))
+
     serialized_groups = GroupsSerializer.new(groups).serializable_hash
     statistics        = @project.statistics
     
@@ -338,8 +342,6 @@ class V1::ProjectsController < V1::BaseController
     load_resource!
 
     basic_search_resource_by!
-    filter_resource_by_created!
-
     order_resource!
 
     @resource = @resource.includes(:project_users, :users)
@@ -354,7 +356,6 @@ class V1::ProjectsController < V1::BaseController
 
     @resource = @resource.order(created_at: :desc)
   end
-
 
   def send_projects_csv(projects)
     csv_data = generate_csv_for(projects)
@@ -385,7 +386,7 @@ class V1::ProjectsController < V1::BaseController
           project.hashid,
           project.name,
           project.description.present? ? project.description : '-',
-          project.status.titleize,
+          project.pretty_status,
           start_date,
           end_date,
           project.user.try(:email),

@@ -51,7 +51,7 @@ class V1::GroupsController < V1::BaseController
   def update_group_params
     params
       .require(:group)
-      .permit(:name, :status, :notes, :created_at)
+      .permit(:name, :status, :notes)
       .select { |x,v| v.present? }
   end
 end

@@ -6,7 +6,15 @@ class GroupsSerializer < ApplicationSerializer
   set_id :hashid
   set_type :group
 
-  attribute :name, :status, :notes, :created_at, :updated_at, :user_id, :progress, :code
+  attribute :name,
+            :status,
+            :pretty_status,
+            :notes,
+            :user_id,
+            :progress,
+            :code,
+            :created_at,
+            :updated_at
 
   attribute :project_id do |object|
     object.project.hashid

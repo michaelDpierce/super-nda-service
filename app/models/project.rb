@@ -40,6 +40,19 @@ class Project < ApplicationRecord
     completed: 2
   }
 
+  def pretty_status
+    case status
+    when "active"
+      "Active"
+    when "archived"
+      "Archived"
+    when "completed"
+      "Completed"
+    else
+      "-"
+    end
+  end
+
   enum action: {
     editing: 0, # Party is editing the project
     waiting: 1, # Party is waiting for counter parties to edit the project
