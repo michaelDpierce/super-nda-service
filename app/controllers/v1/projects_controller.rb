@@ -298,9 +298,9 @@ class V1::ProjectsController < V1::BaseController
         # .order(Arel.sql("CASE WHEN status NOT IN (7, 8) THEN 0 ELSE 1 END, name ASC"))
 
     serialized_groups = GroupsSerializer.new(groups).serializable_hash
-    statistics        = @project.statistics
+    stats             = @project.stats
     
-    render json: serialized_groups.merge(statistics: statistics), status: :ok
+    render json: serialized_groups.merge(stats: stats), status: :ok
   end
 
   # GET /v1/projects/:hashid/check_admin

@@ -59,15 +59,15 @@ class Project < ApplicationRecord
     done: 2 # Parties are done with this project
   }
 
-  def statistics
+  def stats
     {
       queued: groups.queued.size, 
-      teaser_sent: groups.teaser_sent.size,
-      negotiating: groups.where(status: [:nda_sent_sent, :redline_returned, :redline_sent, :ready_to_sign]).size,
-      signed: groups.signed.size,
+      teaser: groups.teaser_sent.size,
+      nda: groups.nda_sent.size,
+      negotiating: groups.where(status: [:redline_returned, :redline_sent]).size,
+      signing: groups.where(status: [:ready_to_sign]).size,
       passed: groups.where(status: [:no_response, :passed]).size,
-      completed: groups.signed.size
+      executed: groups.signed.size
     }
-    # in_progress: groups.where.not(status: [:queued, :signed, :no_response, :passed]).size,
   end
 end
