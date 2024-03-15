@@ -61,10 +61,13 @@ class Project < ApplicationRecord
 
   def statistics
     {
-      queued: groups.queued.size, # 0
-      in_progress: groups.where.not(status: [:queued, :signed, :no_response, :passed]).size,
+      queued: groups.queued.size, 
+      teaser_sent: groups.teaser_sent.size,
+      negotiating: groups.where(status: [:nda_sent_sent, :redline_returned, :redline_sent, :ready_to_sign]).size,
+      signed: groups.signed.size,
       passed: groups.where(status: [:no_response, :passed]).size,
-      completed: groups.signed.size # 6
+      completed: groups.signed.size
     }
+    # in_progress: groups.where.not(status: [:queued, :signed, :no_response, :passed]).size,
   end
 end
