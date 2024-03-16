@@ -19,7 +19,7 @@ class SharingSerializer < ApplicationSerializer
         Rails.application.routes.url_helpers.rails_blob_url(
           file,
           disposition: "attachment",
-          host: "http://localhost:4001" #TODO
+          host: "#{ENV["SERVER_PROTOCOL"]}://#{ENV["SERVER_HOST"]}",
         )
       else
         file.url(disposition: "attachment", expires_in: 15.minutes)
