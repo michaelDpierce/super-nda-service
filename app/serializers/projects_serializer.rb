@@ -6,18 +6,24 @@ class ProjectsSerializer < ApplicationSerializer
   set_id :hashid
   set_type :project
 
-  attribute :name, :description, :status, :action, :start_date, :end_date
+  attribute :name,
+            :description,
+            :status,
+            :start_date,
+            :end_date,
+            :party_count,
+            :counter_party_count
 
   attribute :user do |object|
     {
-      id: object.user.hashid,
-      full_name: object.user.full_name,
-      email: object.user.email
+      full_name: object.user.try(:full_name) || '-',
     }
   end
 
   attribute :logo do |object|
-    Rails.application.routes.url_helpers.rails_blob_url(object.logo) if object.logo.attached?
+    if object.logo.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(object.logo)
+    end
   rescue URI::InvalidURIError
     nil
   end

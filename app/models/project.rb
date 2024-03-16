@@ -6,8 +6,6 @@ class Project < ApplicationRecord
   include Hashid::Rails
   include PgSearch::Model
 
-  default_scope { order(name: :asc) }
-
   multisearchable against: [:name]
 
   pg_search_scope :main_search,
@@ -20,6 +18,9 @@ class Project < ApplicationRecord
 
   belongs_to :user, optional: true
 
+  has_one_attached :logo, dependent: :destroy_async
+  has_one_attached :template, dependent: :destroy_async
+
   has_many :project_users, dependent: :destroy_async
   has_many :users, through: :project_users
   
@@ -31,43 +32,32 @@ class Project < ApplicationRecord
 
   has_many :groups, dependent: :destroy
 
-  has_one_attached :logo, dependent: :destroy_async
-  has_one_attached :template, dependent: :destroy_async
-
   enum status: {
     active: 0,
-    archived: 1,
-    completed: 2
+    completed: 1,
+    archived: 2
   }
 
-  def pretty_status
-    case status
-    when "active"
-      "Active"
-    when "archived"
-      "Archived"
-    when "completed"
-      "Completed"
-    else
-      "-"
-    end
+  def create_template_blob(filename)
+    file_content = template.download
+    rewindable_io = StringIO.new(file_content)
+  
+    ActiveStorage::Blob.create_and_upload!(
+      io: rewindable_io,
+      filename: filename,
+      content_type: template.content_type
+    )
   end
 
-  enum action: {
-    editing: 0, # Party is editing the project
-    waiting: 1, # Party is waiting for counter parties to edit the project
-    done: 2 # Parties are done with this project
-  }
-
   def stats
+    counts = groups.group(:status).count
+    
     {
-      queued: groups.queued.size, 
-      teaser: groups.teaser_sent.size,
-      nda: groups.nda_sent.size,
-      negotiating: groups.where(status: [:redline_returned, :redline_sent]).size,
-      signing: groups.where(status: [:ready_to_sign]).size,
-      passed: groups.where(status: [:no_response, :passed]).size,
-      executed: groups.signed.size
+      queued: counts['queued'] || 0,
+      sent: counts['sent'] || 0,
+      negotiating: counts['negotiating'] || 0,
+      signing: counts['signing'] || 0,
+      complete: counts['complete'] || 0
     }
   end
 end

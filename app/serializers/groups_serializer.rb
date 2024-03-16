@@ -8,23 +8,25 @@ class GroupsSerializer < ApplicationSerializer
 
   attribute :name,
             :status,
-            :pretty_status,
             :notes,
             :user_id,
-            :progress,
             :code,
             :created_at,
             :updated_at
 
-  attribute :project_id do |object|
-    object.project.hashid
+  attribute :document_id do |object|
+    object.last_document&.hashid
   end
 
-  attribute :user do |object|
-    {
-      id: object.user.hashid,
-      full_name: object.user.full_name,
-      email: object.user.email
-    }
+  attribute :version_number do |object|
+    object.last_document&.version_number || 0
+  end
+
+  attribute :current_owner do |object|
+    object.last_document&.owner
+  end
+
+  attribute :last_interaction do |object|
+    object.last_document&.created_at
   end
 end 

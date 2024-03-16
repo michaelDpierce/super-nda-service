@@ -12,4 +12,12 @@ class ApplicationController < ActionController::API
   def user_for_paper_trail
     Current.user ? Current.user.try(:id)&.to_s : "Guest"
   end
+
+  def sanitize_filename(filename)
+    sanitized = filename.gsub(ALLOWED_FILENAME_CHARS, '')
+  
+    raise ArgumentError, "Filename is not valid or becomes empty after sanitization." if sanitized.empty?
+  
+    sanitized
+  end
 end

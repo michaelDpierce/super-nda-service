@@ -3,30 +3,45 @@
 # =============================================================================
 
 class Document < ApplicationRecord
-  # include AASM
+  include Hashid::Rails
+
+  before_validation :set_version_number, on: :create
+  after_commit :run_project_stats_job, on: [:create]
 
   belongs_to :group
-  has_many :revisions, dependent: :destroy_async
+  belongs_to :project
+
   has_one_attached :file, dependent: :destroy_async
+  
+  scope :last_document, -> { order(created_at: :desc).limit(1) }
 
-  # aasm column: 'state' do
-  #   state :queued, initial: true
-  #   state :nda_sent
-  #   state :negotiating
-  #   state :ready_to_sign
+  enum owner: {
+    party: 0,
+    counter_party: 1
+  }
 
-  #   event :start_negotiation do
-  #     transitions from: :nda_sent, to: :negotiating
-  #   end
+  def generate_sanitized_filename
+    ext   = self.project.template.filename.extension_with_delimiter
+    group = self.group.name
 
-  #   event :prepare_to_sign do
-  #     transitions from: :negotiating, to: :ready_to_sign
-  #   end
-  # end
+    filename =
+      "#{project.name}_#{group}_NDA_V#{version_number}#{ext}"
 
-  # TODO
-  def add_revision(file, side)
-    # revisions.create!(file: file, side: side)
-    # # Logic to increment revision numbers goes here
+    sanitize_filename(filename)
+  end
+
+  private
+
+  def set_version_number
+    last_version = self.group.documents.maximum(:version_number) || 0
+    self.version_number = last_version + 1
+  end
+
+  def run_project_stats_job
+    ProjectStatsJob.perform_async(group.project_id)
+  end
+
+  def sanitize_filename(filename)
+    filename.gsub(/[^a-zA-Z0-9\-_.]/, '_')
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_14_141828) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_16_162726) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -44,15 +44,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_141828) do
 
   create_table "documents", force: :cascade do |t|
     t.bigint "group_id", null: false
-    t.string "state"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "owner", default: 0
+    t.integer "version_number"
+    t.integer "project_id", null: false
     t.index ["group_id"], name: "index_documents_on_group_id"
   end
 
   create_table "groups", force: :cascade do |t|
     t.string "name"
-    t.integer "status", default: 0
+    t.integer "status", default: 1
     t.integer "user_id"
     t.integer "project_id"
     t.text "notes"
@@ -90,19 +92,10 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_141828) do
     t.integer "status", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "action", default: 0
-    t.datetime "start_date"
+    t.datetime "start_date", default: -> { "CURRENT_TIMESTAMP" }
     t.datetime "end_date"
-  end
-
-  create_table "revisions", force: :cascade do |t|
-    t.bigint "document_id", null: false
-    t.integer "revision_number"
-    t.integer "sub_revision_number"
-    t.string "side"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["document_id"], name: "index_revisions_on_document_id"
+    t.integer "party_count", default: 0
+    t.integer "counter_party_count", default: 0
   end
 
   create_table "users", force: :cascade do |t|
@@ -132,5 +125,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_14_141828) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "documents", "groups"
-  add_foreign_key "revisions", "documents"
+  add_foreign_key "documents", "projects"
 end

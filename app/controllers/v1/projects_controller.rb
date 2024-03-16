@@ -15,7 +15,6 @@ class V1::ProjectsController < V1::BaseController
       create_project_user
       create_groups
       groups
-      check_admin
     ]
 
   before_action :find_project_user,
@@ -27,7 +26,6 @@ class V1::ProjectsController < V1::BaseController
       create_project_user
       create_groups
       groups
-      check_admin
     ]
 
   # GET /v1/projects[.json/.csv]
@@ -38,15 +36,13 @@ class V1::ProjectsController < V1::BaseController
       ProjectUser.where(user_id: @current_user.id)
         .pluck(:project_id)
   
-    @projects = @resource.where(id: project_ids)
+    @projects = @resource.where(id: project_ids).includes(:user)
   
     respond_to do |format|
       format.json do
-        render_resource(
-          @projects,
-          ProjectsSerializer,
-          {}
-        )
+        render json:
+          ProjectsSerializer.new(@projects, {}).serializable_hash,
+          status: :ok
       end
 
       format.csv do
@@ -146,58 +142,39 @@ class V1::ProjectsController < V1::BaseController
     render(json: { result: service.result, status: service.status })
   end
 
-  # GET /v1/projects/:hashid/export.csv
-  def export
-    groups = @project.groups.includes(:user, :project)
-
-    data = CSV.generate(headers: true) do |csv|
-      csv << [
-        "Name",
-        "Status",
-        "Progress",
-        "Owner",
-        "Created At",
-        "Updated At",
-        "Notes"
-      ]
-
-      groups.each do |group|
-        csv << [
-          group.name,
-          group.pretty_status,
-          group.progress&.titleize,
-          group.user.try(:email),
-          group.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          group.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          group.notes
-        ]
-      end
-    end
-
-    send_data data, filename: "report.csv", type: "text/csv"
-  end
-
   # GET /v1/projects/:hashid/export_groups.csv
   def export_groups
     groups = @project.groups.includes(:user)
 
     data = CSV.generate(headers: true) do |csv|
+      base_url = "#{ENV['SERVER_PROTOCOL']}://#{ENV['SERVER_HOST']}/sharing"
+
       csv << [
         "Name",
         "Status",
-        "Progress",
-        "Owner",
+        "Owner Name",
+        "Owner Email",
+        "Code",
+        "URL",
+        "Share Link",
+        "ID",
         "Created At",
         "Updated At",
         "Notes"
       ]
 
       groups.each do |group|
+        share_link = "#{base_url}/#{group.hashid}?code=#{group.code}"
+
         csv << [
           group.name,
-          group.pretty_status,
-          group.progress&.titleize,
+          group.status&.titleize,
+          group.user.try(:full_name),
           group.user.try(:email),
+          group.code.to_s,
+          "#{base_url}/#{group.hashid}",
+          share_link,
+          group.hashid,
           group.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
           group.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
           group.notes
@@ -205,7 +182,7 @@ class V1::ProjectsController < V1::BaseController
       end
     end
 
-    send_data data, filename: "report.csv", type: "text/csv"
+    send_data data, filename: "Groups.csv", type: "text/csv"
   end
 
   # POST /v1/projects/:hashid/create_project_user
@@ -293,19 +270,16 @@ class V1::ProjectsController < V1::BaseController
 
   def groups
     groups =
-      @project.groups
-        .includes(:user)
-        # .order(Arel.sql("CASE WHEN status NOT IN (7, 8) THEN 0 ELSE 1 END, name ASC"))
+      @project.groups.eager_load(:last_document)
 
-    serialized_groups = GroupsSerializer.new(groups).serializable_hash
+    sorted_groups = groups.sort_by do |g|
+      g.last_document&.created_at || Time.now
+    end
+
+    serialized_groups = GroupsSerializer.new(sorted_groups).serializable_hash
     stats             = @project.stats
     
     render json: serialized_groups.merge(stats: stats), status: :ok
-  end
-
-  # GET /v1/projects/:hashid/check_admin
-  def check_admin
-    render(json: { admin: @project_user.admin? }, status: :ok)
   end
 
   private
@@ -341,6 +315,10 @@ class V1::ProjectsController < V1::BaseController
   def base_filtering!
     load_resource!
 
+    if params[:active].present?
+      @resource = @resource.where(status: :active)
+    end
+
     basic_search_resource_by!
     order_resource!
 
@@ -352,9 +330,7 @@ class V1::ProjectsController < V1::BaseController
   end
 
   def order_resource!
-    return if params[:sort_by].present?
-
-    @resource = @resource.order(created_at: :desc)
+    @resource = @resource.order(status: :asc, name: :asc)
   end
 
   def send_projects_csv(projects)
@@ -367,13 +343,14 @@ class V1::ProjectsController < V1::BaseController
   def generate_csv_for(projects)
     CSV.generate(headers: true) do |csv|
       csv << [
-        'ID',
         'Name',
         'Description',
+        'Owner Name',
+        'Owner Email',
         'Status',
         'Start Date',
         'End Date',
-        'Owner',
+        'ID',
         'Created At',
         'Updated At'
       ]
@@ -383,13 +360,14 @@ class V1::ProjectsController < V1::BaseController
         end_date   = project.end_date ? project.end_date.strftime("%Y-%m-%d %H:%M:%S %Z") : 'Current'
 
         csv << [
-          project.hashid,
           project.name,
           project.description.present? ? project.description : '-',
-          project.pretty_status,
+          project.user.try(:full_name),
+          project.user.try(:email),
+          project.status&.titleize,
           start_date,
           end_date,
-          project.user.try(:email),
+          project.hashid,
           project.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
           project.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z")
         ]

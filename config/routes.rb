@@ -24,12 +24,10 @@ Rails.application.routes.draw do
     # Project management
     resources :projects, only: [:index, :show, :create, :update, :destroy] do
       # Project-specific routes
-      get :export, on: :member
       get :export_groups, on: :member
       post :create_project_user, on: :member
       post :create_groups, on: :member
       get :groups, on: :member
-      get :check_admin, on: :member
     end
 
     # Project search
@@ -43,5 +41,6 @@ Rails.application.routes.draw do
 
     # Share Links
     post '/verify_code', to: 'sharing#verify_code'
+    post '/upload',      to: 'sharing#upload'
   end
 end

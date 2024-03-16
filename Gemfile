@@ -5,7 +5,6 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-gem "aasm", "5.1.1"
 gem "aws-sdk-s3", "1.143.0", require: false
 gem "bootsnap", "1.18.3", require: false
 gem "clerk-sdk-ruby", "3.0.0", require: "clerk"
@@ -14,7 +13,6 @@ gem "convert_api", "1.4.0"
 gem "docx", "0.8.0"
 gem "fast_jsonapi", "1.5"
 gem "hashid-rails", "1.4.1"
-gem "pagy", "7.0.8" # 6.2.0 Previously
 gem "paper_trail", "15.1.0"
 gem "pdf-reader", "2.12.0"
 gem "pg_search", "2.3.6"
