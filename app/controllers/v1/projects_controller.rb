@@ -272,13 +272,6 @@ class V1::ProjectsController < V1::BaseController
     groups =
       @project.groups.eager_load(:last_document)
 
-    puts "Debug"
-    
-    groups.each do |group|
-      puts "Group: #{group.name}"
-      puts "Last Document: #{group.last_document.inspect}"
-    end
-
     sorted_groups = groups.sort_by do |g|
       g.last_document&.created_at || Time.now
     end

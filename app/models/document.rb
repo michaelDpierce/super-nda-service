@@ -7,14 +7,13 @@ class Document < ApplicationRecord
 
   before_validation :set_version_number, on: :create
   after_commit :run_project_stats_job, on: [:create]
+  after_create :update_group_last_document
 
   belongs_to :group
   belongs_to :project
 
   has_one_attached :file, dependent: :destroy_async
   
-  scope :last_document, -> { order(created_at: :desc).limit(1) }
-
   enum owner: {
     party: 0,
     counter_party: 1
@@ -39,6 +38,10 @@ class Document < ApplicationRecord
 
   def run_project_stats_job
     ProjectStatsJob.perform_async(group.project_id)
+  end
+
+  def update_group_last_document
+    group.update(last_document_id: id)
   end
 
   def sanitize_filename(filename)

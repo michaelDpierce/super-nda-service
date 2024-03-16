@@ -9,21 +9,21 @@ class SharingSerializer < ApplicationSerializer
   attribute :name
 
   attribute :current_nda_url do |object|
-    last_document = object.documents.last
+    last_document = object.last_document
 
     if last_document
       file     = last_document.file
       filename = file.filename.to_s
 
       url = if Rails.env.development?
-        Rails.application.routes.url_helpers.rails_blob_url(
-          file,
-          disposition: "attachment",
-          host: "#{ENV["SERVER_PROTOCOL"]}://#{ENV["SERVER_HOST"]}",
-        )
-      else
-        file.url(disposition: "attachment", expires_in: 15.minutes)
-      end
+              Rails.application.routes.url_helpers.rails_blob_url(
+                file,
+                disposition: "attachment",
+                host: "#{ENV["SERVER_PROTOCOL"]}://#{ENV["SERVER_HOST"]}",
+              )
+            else
+              file.url(disposition: "attachment", expires_in: 15.minutes)
+            end
 
       {
         url: url,
@@ -33,4 +33,4 @@ class SharingSerializer < ApplicationSerializer
   rescue URI::InvalidURIError
     nil
   end
-end 
+end

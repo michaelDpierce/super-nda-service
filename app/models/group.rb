@@ -5,14 +5,13 @@
 class Group < ApplicationRecord
   include Hashid::Rails
 
-  belongs_to :last_document, class_name: 'Document', optional: true
   belongs_to :project
   belongs_to :user
 
   validates :project_id, presence: true
   validates :user_id, presence: true
 
-  has_one :last_document, -> { order(created_at: :desc) }, class_name: 'Document'
+  has_one :last_document, class_name: 'Document', primary_key: 'last_document_id', foreign_key: 'id'
   has_many :documents, dependent: :destroy_async
 
   enum status: {
