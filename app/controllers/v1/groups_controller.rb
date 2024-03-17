@@ -3,8 +3,8 @@
 # =============================================================================
 
 class V1::GroupsController < V1::BaseController
-  before_action :find_group, only: %i[update destroy]
-  before_action :load_project!, only: %i[update destroy]
+  before_action :find_group, only: %i[show update destroy upload]
+  before_action :load_project!, only: %i[update destroy upload]
 
   # POST /v1/projects
   def create
@@ -35,7 +35,9 @@ class V1::GroupsController < V1::BaseController
           }, status: :unprocessable_entity
 
           return
-        end
+        elsif current_status == 'negotiating'
+          # document = @group.documents.last
+        end 
     
         render json: GroupsSerializer.new(@group)
       else
@@ -47,11 +49,34 @@ class V1::GroupsController < V1::BaseController
     end
   end
 
+  # GET /v1/groups/:hashid/
+  def show
+    if @group.present?
+      render json: GroupSerializer.new(@group, include: [:documents])
+    else
+      render json: { errors: 'Group not found' }, status: :not_found
+    end
+  end
+
   # DELETE /v1/groups/:hashid
   def destroy    
     @group.documents.destroy_all
     @group.destroy!
     head(:no_content)
+  end
+
+  # POST /v1/groups/:hashid/upload
+  def upload
+    document =
+      @group.documents.create!(owner: :counter_party, project_id: @group.project_id)
+
+    filename = document.generate_sanitized_filename
+    new_blob = @project.create_template_blob(filename)
+  
+    document.file.attach(new_blob)
+    document.save!
+
+    render json: { data: document, message: "Success" }, status: :ok
   end
 
   private

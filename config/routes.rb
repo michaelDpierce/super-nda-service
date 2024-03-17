@@ -37,7 +37,9 @@ Rails.application.routes.draw do
     resources :project_users, only: [:index, :update, :destroy]
 
     # Groups
-    resources :groups, only: [:create, :update, :destroy]
+    resources :groups, only: [:show, :create, :update, :destroy] do
+      post :upload, on: :member
+    end
 
     # Share Links
     post '/verify_code', to: 'sharing#verify_code'
