@@ -12,11 +12,15 @@ class ProjectStatsJob
 
     return unless project
 
-    counts =
-      Document.joins(group: :project)
-        .where(groups: {project_id: project.id})
-        .group(:owner)
-        .count
+    last_document_ids = Document.joins(:group)
+                            .where(groups: {project_id: project.id})
+                            .select('MAX(documents.id) as last_document_id')
+                            .group('groups.id')
+                            .pluck(:last_document_id)
+
+    counts = Document.where(id: last_document_ids)
+                    .group(:owner)
+                    .count
 
     project.update(
       party_count: counts.fetch('party', 0),

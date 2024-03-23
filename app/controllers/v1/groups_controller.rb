@@ -27,7 +27,9 @@ class V1::GroupsController < V1::BaseController
 
     if @project.template.attached?  
       if @group.update(update_group_params)
+        # Changing from one Status to another
         if current_status == 'queued' && @group.status == 'sent'
+          Rails.logger.info "Group status change from Queued to Sent"
           handle_status_change_to_sent(@group)
         elsif current_status == 'sent' && @group.status == 'queued'
           render json: { 
@@ -35,9 +37,25 @@ class V1::GroupsController < V1::BaseController
           }, status: :unprocessable_entity
 
           return
-        elsif current_status == 'negotiating'
-          # document = @group.documents.last
+        end
+
+        # On Status Change
+        if @group.status === 'sent'
+          Rails.logger.info "Group status change to Sent"
+          
+          if @group.last_document.owner === nil
+            last_document = @group.last_document.update!(owner: :party)
+          end
+        elsif @group.status === 'complete' # Manual override to completed vs doing in signing flow
+          Rails.logger.info "Group status change to Complete"
+
+          last_document = @group.last_document.update!(owner: nil)
+          # last_document.owner = nil
+          # last_document.save!
         end 
+
+        ProjectStatsJob.perform_async(@group.project_id) # Rerun counts have party is set to nil
+
     
         render json: GroupsSerializer.new(@group)
       else
