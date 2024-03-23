@@ -42,7 +42,7 @@ class V1::GroupsController < V1::BaseController
         # On Status Change
         if @group.status === 'sent'
           Rails.logger.info "Group status change to Sent"
-          
+
           if @group.last_document.owner === nil
             last_document = @group.last_document.update!(owner: :party)
           end
@@ -93,6 +93,9 @@ class V1::GroupsController < V1::BaseController
   
     document.file.attach(new_blob)
     document.save!
+
+    # Ensure that if the party manually uploaded the first document the status is set to negotiating
+    @group.update!(status: :negotiating)
 
     render json: { data: document, message: "Success" }, status: :ok
   end
