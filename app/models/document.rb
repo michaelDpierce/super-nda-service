@@ -6,7 +6,7 @@ class Document < ApplicationRecord
   include Hashid::Rails
 
   before_validation :set_version_number, on: :create
-  after_commit :run_project_stats_job, on: [:create]
+  after_commit :run_project_stats_job
   after_create :update_group_last_document
 
   belongs_to :group
@@ -30,16 +30,16 @@ class Document < ApplicationRecord
   end
 
   def generate_reclaimed_filename(last_document_id)
-  last_document = Document.find_by(id: last_document_id)
-  
-  return "default_filename.ext" unless last_document&.file&.attached?
-  
-  ext        = last_document.file.filename.extension_with_delimiter
-  group_name = self.group.name
-  filename   = "#{self.project.name}_#{group_name}_NDA_V#{version_number}#{ext}"
+    last_document = Document.find_by(id: last_document_id)
+    
+    return "default_filename.ext" unless last_document&.file&.attached?
+    
+    ext        = last_document.file.filename.extension_with_delimiter
+    group_name = self.group.name
+    filename   = "#{self.project.name}_#{group_name}_NDA_V#{version_number}#{ext}"
 
-  sanitize_filename(filename)
-end
+    sanitize_filename(filename)
+  end
 
   private
 

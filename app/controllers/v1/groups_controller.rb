@@ -50,12 +50,7 @@ class V1::GroupsController < V1::BaseController
           Rails.logger.info "Group status change to Complete"
 
           last_document = @group.last_document.update!(owner: nil)
-          # last_document.owner = nil
-          # last_document.save!
         end 
-
-        ProjectStatsJob.perform_async(@group.project_id) # Rerun counts have party is set to nil
-
     
         render json: GroupsSerializer.new(@group)
       else
