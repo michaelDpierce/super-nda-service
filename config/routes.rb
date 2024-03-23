@@ -39,10 +39,12 @@ Rails.application.routes.draw do
     # Groups
     resources :groups, only: [:show, :create, :update, :destroy] do
       post :upload, on: :member
+      post :change_owner, on: :member
     end
 
     # Share Links
     post '/verify_code', to: 'sharing#verify_code'
     post '/upload',      to: 'sharing#upload'
+    post '/reclaim',     to: 'sharing#reclaim'
   end
 end

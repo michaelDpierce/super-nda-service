@@ -3,8 +3,8 @@
 # =============================================================================
 
 class V1::GroupsController < V1::BaseController
-  before_action :find_group, only: %i[show update destroy upload]
-  before_action :load_project!, only: %i[update destroy upload]
+  before_action :find_group, only: %i[show update destroy upload change_owner]
+  before_action :load_project!, only: %i[update destroy upload change_owner]
 
   # POST /v1/projects
   def create
@@ -97,6 +97,23 @@ class V1::GroupsController < V1::BaseController
     # Ensure that if the party manually uploaded the first document the status is set to negotiating
     @group.update!(status: :negotiating)
 
+    render json: { data: document, message: "Success" }, status: :ok
+  end
+
+  # POST /v1/groups/:hashid/change_owner?owner=party/counter_party
+  def change_owner
+    last_document_id = @group.last_document_id
+
+    document = @group.documents.create!(owner: params['owner'], project_id: @group.project_id)
+    filename = document.generate_reclaimed_filename(last_document_id)
+  
+    new_blob = @project.duplicate_version_blob(last_document_id, filename)
+    
+    document.file.attach(new_blob)
+    document.save!
+  
+    @group.update!(status: :negotiating)
+  
     render json: { data: document, message: "Success" }, status: :ok
   end
 

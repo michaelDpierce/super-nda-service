@@ -16,6 +16,10 @@ class GroupSerializer < ApplicationSerializer
 
   has_many :documents, serializer: DocumentSerializer
 
+  attribute :document_owner do |object|
+    object.last_document&.owner || 'N/A'
+  end
+
   attribute :document_version_number do |object|
     object.last_document&.version_number || 0
   end

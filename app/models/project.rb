@@ -39,13 +39,25 @@ class Project < ApplicationRecord
   }
 
   def create_template_blob(filename)
-    file_content = template.download
+    file_content  = template.download
     rewindable_io = StringIO.new(file_content)
   
     ActiveStorage::Blob.create_and_upload!(
       io: rewindable_io,
       filename: filename,
       content_type: template.content_type
+    )
+  end
+
+  def duplicate_version_blob(last_document_id, filename)
+    last_document = Document.find(last_document_id)
+    file_content  = last_document.file.download
+    rewindable_io = StringIO.new(file_content)
+
+    ActiveStorage::Blob.create_and_upload!(
+      io: rewindable_io,
+      filename: filename,
+      content_type: last_document.file.blob.content_type
     )
   end
 

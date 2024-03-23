@@ -29,6 +29,18 @@ class Document < ApplicationRecord
     sanitize_filename(filename)
   end
 
+  def generate_reclaimed_filename(last_document_id)
+  last_document = Document.find_by(id: last_document_id)
+  
+  return "default_filename.ext" unless last_document&.file&.attached?
+  
+  ext        = last_document.file.filename.extension_with_delimiter
+  group_name = self.group.name
+  filename   = "#{self.project.name}_#{group_name}_NDA_V#{version_number}#{ext}"
+
+  sanitize_filename(filename)
+end
+
   private
 
   def set_version_number
