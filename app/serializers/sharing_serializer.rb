@@ -8,12 +8,14 @@ class SharingSerializer < ApplicationSerializer
 
   attribute :name
 
-  attribute :current_nda_url do |object|
+  attribute :last_document do |object|
     last_document = object.last_document
 
     if last_document
-      file     = last_document.file
-      filename = file.filename.to_s
+      file           = last_document.file
+      filename       = file.filename.to_s
+      owner          = last_document.owner
+      version_number = last_document.version_number
 
       url = if Rails.env.development?
               Rails.application.routes.url_helpers.rails_blob_url(
@@ -27,7 +29,9 @@ class SharingSerializer < ApplicationSerializer
 
       {
         url: url,
-        name: filename
+        filename: filename,
+        owner: owner,
+        version_number: version_number
       }
     end
   rescue URI::InvalidURIError

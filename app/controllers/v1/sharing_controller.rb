@@ -1,6 +1,6 @@
 class V1::SharingController < V1::BaseController
   skip_before_action :authenticate_request!
-  before_action :verify_group, only: %i[verify_code upload]
+  before_action :verify_group, only: %i[verify_code upload reclaim]
   before_action :validate_file_presence, only: :upload
 
   # POST /v1/verify_code
@@ -11,9 +11,27 @@ class V1::SharingController < V1::BaseController
   # POST /v1/upload
   def upload
     document = create_document_from_file(params[:file])
+
+    update_group_status_if_negotiating(document)
+    
+    render json: SharingSerializer.new(@group)
+  end
+
+  # POST /v1/reclaim
+  def reclaim
+    last_document_id = @group.last_document_id
+
+    document = @group.documents.create!(owner: params['owner'], project_id: @group.project_id)
+    filename = document.generate_reclaimed_filename(last_document_id)
+  
+    new_blob = @group.project.duplicate_version_blob(last_document_id, filename)
+    
+    document.file.attach(new_blob)
+    document.save!
+  
     update_group_status_if_negotiating(document)
 
-    render_success(document)
+    render json: SharingSerializer.new(@group)
   end
 
   private
