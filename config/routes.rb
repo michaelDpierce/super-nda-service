@@ -28,6 +28,7 @@ Rails.application.routes.draw do
       post :create_project_user, on: :member
       post :create_groups, on: :member
       get :groups, on: :member
+      get :stats, on: :member
     end
 
     # Project search

@@ -15,6 +15,7 @@ class V1::ProjectsController < V1::BaseController
       create_project_user
       create_groups
       groups
+      stats
     ]
 
   before_action :find_project_user,
@@ -26,6 +27,7 @@ class V1::ProjectsController < V1::BaseController
       create_project_user
       create_groups
       groups
+      stats
     ]
 
   # GET /v1/projects[.json/.csv]
@@ -280,6 +282,10 @@ class V1::ProjectsController < V1::BaseController
     stats             = @project.stats
     
     render json: serialized_groups.merge(stats: stats), status: :ok
+  end
+
+  def stats
+    render json: @project.stats, status: :ok
   end
 
   private
