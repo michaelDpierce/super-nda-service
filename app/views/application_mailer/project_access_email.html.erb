@@ -1,0 +1,18 @@
+<h1>
+  You&apos;ve been added to a Project in SuperNDA
+</h1>
+
+<p>
+  Please use the link below to access the Project.
+  <br />
+  <br />
+  Project: <b><%= @project.name %></b>
+</p>
+
+<%= render('button', value: 'View Project', url: @url) %>
+
+<p>
+  To ensure you can receive our future emails, please add
+  <%= mail_to "no-reply@supernda.com", 'no-reply@supernda.com' %>
+  to your address book.
+</p>

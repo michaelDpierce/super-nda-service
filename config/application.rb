@@ -31,6 +31,9 @@ module MinuteBookService
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # Mailers
+    config.action_mailer.deliver_later_queue_name = 'mailers'
+
     # Batch Destroy
     config.active_record.destroy_association_async_batch_size = 100
 

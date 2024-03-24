@@ -219,6 +219,8 @@ class V1::ProjectsController < V1::BaseController
           admin: params["data"]["admin"],
           access: params["data"]["access"]
         )
+
+      ApplicationMailer.project_access_email(user.id, @project.id).deliver_later
   
       render(
         json: ProjectUsersSerializer.new(project_user, includes: :user),

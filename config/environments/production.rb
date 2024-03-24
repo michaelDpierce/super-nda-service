@@ -53,14 +53,26 @@ Rails.application.configure do
   config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'], namespace: 'cache' }
 
   # Use a real queuing backend for Active Job (and separate queues per environment).
-  # config.active_job.queue_adapter     = :sidekiq
-  # config.active_job.queue_name_prefix = "minute_book_service_production"
+  config.active_job.queue_adapter     = :sidekiq
 
   config.action_mailer.perform_caching = true
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
+
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: ENV['SMTP_SERVER'],
+    port: ENV['SMTP_PORT'],
+    user_name: ENV['SMTP_USERNAME'],
+    password: ENV['SMTP_PASSWORD'],
+    authentication: ENV['SMTP_AUTHENTICATION'],
+    enable_starttls_auto: true
+  }
+
+  # Ensure you have a default host for your emails
+  config.action_mailer.default_url_options = { host: ENV['SERVER_HOST'] }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).

@@ -38,6 +38,16 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
 
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: ENV['SMTP_SERVER'],
+    port: ENV['SMTP_PORT'],
+    user_name: ENV['SMTP_USERNAME'],
+    password: ENV['SMTP_PASSWORD'],
+    authentication: ENV['SMTP_AUTHENTICATION'],
+    enable_starttls_auto: true
+  }
+
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
 
@@ -53,6 +63,8 @@ Rails.application.configure do
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
+  # Use a real queuing backend for Active Job (and separate queues per environment).
+  config.active_job.queue_adapter     = :sidekiq
 
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
