@@ -127,7 +127,7 @@ class V1::ProjectsController < V1::BaseController
   end
 
   # DELETE /v1/projects/:hashid
-  def destroy    
+  def destroy
     @project.destroy!
     head(:no_content)
   end
