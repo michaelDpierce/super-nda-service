@@ -21,4 +21,12 @@ class DocumentSerializer < ApplicationSerializer
   rescue URI::InvalidURIError
     nil
   end
+
+  attribute :signed_pdf_url do |object|
+    if object.signed_pdf.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(object.signed_pdf, disposition: "attachment")
+    end
+  rescue URI::InvalidURIError
+    nil
+  end
 end 

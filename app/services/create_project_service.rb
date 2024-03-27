@@ -2,6 +2,8 @@
 # Copyright 2024, SuperNDA. All rights reserved.
 # =============================================================================
 
+require "securerandom"
+
 class CreateProjectService
   attr_reader :result
   attr_reader :status
@@ -18,6 +20,7 @@ class CreateProjectService
     ActiveRecord::Base.transaction do
       @project              = Project.new(@params)
       @project[:user_id]    = @user&.id
+      @project[:code]       = SecureRandom.random_number(100000..999999).to_s
 
       Rails.logger.info(@project.inspect)
 

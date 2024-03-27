@@ -9,6 +9,8 @@ class User < ApplicationRecord
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :email, uniqueness: true
 
+  has_one_attached :signature, dependent: :destroy_async
+
   has_many :project_users, dependent: :destroy_async
   has_many :projects, through: :project_users
 
@@ -18,7 +20,11 @@ class User < ApplicationRecord
     source: :project,
     through: :project_users_with_access
 
-  def full_name
+  def full_name_reverse
     "#{last_name}, #{first_name} "
+  end
+
+  def full_name
+    "#{first_name} #{last_name}"
   end
 end

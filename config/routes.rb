@@ -39,13 +39,23 @@ Rails.application.routes.draw do
 
     # Groups
     resources :groups, only: [:show, :create, :update, :destroy] do
-      post :upload, on: :member
+      post :upload,       on: :member
       post :change_owner, on: :member
+      get  :sign,         on: :member
     end
+
+    # Settings
+    get '/settings',        to: 'settings#show'
+    put '/settings',        to: 'settings#update'
 
     # Share Links
     post '/verify_code', to: 'sharing#verify_code'
     post '/upload',      to: 'sharing#upload'
     post '/reclaim',     to: 'sharing#reclaim'
+    post '/signing',     to: 'sharing#signing'
+    post '/sign',        to: 'sharing#sign'
+
+    post '/verify_project_code', to: 'sharing#verify_project_code'
+    post '/create_group',        to: 'sharing#create_group'
   end
 end

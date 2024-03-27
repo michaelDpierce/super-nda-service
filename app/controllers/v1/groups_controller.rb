@@ -3,8 +3,8 @@
 # =============================================================================
 
 class V1::GroupsController < V1::BaseController
-  before_action :find_group, only: %i[show update destroy upload change_owner]
-  before_action :load_project!, only: %i[update destroy upload change_owner]
+  before_action :find_group, only: %i[show update destroy upload change_owner sign]
+  before_action :load_project!, only: %i[update destroy upload change_owner sign]
 
   # POST /v1/projects
   def create
@@ -22,6 +22,7 @@ class V1::GroupsController < V1::BaseController
 
   # PUT /v1/groups/:hashid
   # PATCH /v1/groups/:hashid
+  # TODO do we want to be able to push to signing from here?
   def update
     current_status = @group.status
 
@@ -30,7 +31,10 @@ class V1::GroupsController < V1::BaseController
         # Changing from one Status to another
         if current_status == 'queued' && @group.status == 'sent'
           Rails.logger.info "Group status change from Queued to Sent"
-          handle_status_change_to_sent(@group)
+          create_new_document(@group, :counter_party)
+        elsif current_status == 'signing' && @group.status == 'negotiating'
+          Rails.logger.info "Group status change from Signing to Negotiating"
+          create_new_document(@group, :party)
         elsif current_status == 'sent' && @group.status == 'queued'
           render json: { 
             errors: 'You cannot change the status from Sent back to Queued.'
@@ -57,7 +61,7 @@ class V1::GroupsController < V1::BaseController
         render json: { errors: @group.errors.messages }, status: :unprocessable_entity
       end
     else
-      render json: { errors: 'A NDA template must be associated with the Project to send to Groups!' },
+      render json: { errors: 'A NDA template must be associated with the Project to send NDA to Groups. Please add a template in Project Settings.' },
              status: :unprocessable_entity
     end
   end
@@ -95,7 +99,7 @@ class V1::GroupsController < V1::BaseController
     render json: { data: document, message: "Success" }, status: :ok
   end
 
-  # POST /v1/groups/:hashid/change_owner?owner=party/counter_party
+  # POST /v1/groups/:hashid/change_owner?owner=party/counter_party&status=negotiating/signing
   def change_owner
     last_document_id = @group.last_document_id
 
@@ -107,9 +111,36 @@ class V1::GroupsController < V1::BaseController
     document.file.attach(new_blob)
     document.save!
   
-    @group.update!(status: :negotiating)
+    @group.update!(status: params['status'])
   
-    render json: { data: document, message: "Success" }, status: :ok
+    render json: { message: "Success" }, status: :ok
+  end
+
+  # GET /v1/groups/:hashid/sign
+  def sign
+    last_document = @group.last_document
+  
+    last_document.update!(
+      party_full_name: @current_user.full_name,
+      party_email: @current_user.email,
+      party_date: Time.now,
+      party_ip: request.remote_ip,
+      party_user_agent: request.user_agent
+    )
+
+    @group.update!(status: :signing) # Tracking the lifecycle of the group
+
+    if last_document.party_date && last_document.counter_party_date
+      @group.update!(status: :complete)
+      last_document.update!(owner: nil) # Both parties have signed
+
+      job_id = CompleteNdaJob.perform_async(last_document.id, @current_user.id)
+      Rails.logger.info "Queued CompleteNDAJob for document_id: #{last_document.id} with job_id: #{job_id}"
+    elsif last_document.party_date && !last_document.counter_party_date
+      last_document.update!(owner: :counter_party) # Set back to Counter Party Owned
+    end
+
+    render json: GroupsSerializer.new(@group)
   end
 
   private
@@ -130,11 +161,9 @@ class V1::GroupsController < V1::BaseController
       .select { |x,v| v.present? }
   end
 
-  def handle_status_change_to_sent(group)
-    Rails.logger.info "Handling status change to 'sent' for group: #{group.hashid}"
-  
+  def create_new_document(group, owner)
     document =
-      group.documents.create!(owner: :counter_party, project_id: group.project_id)
+      group.documents.create!(owner: owner, project_id: group.project_id)
   
     filename = document.generate_sanitized_filename
     new_blob = @project.create_template_blob(filename)

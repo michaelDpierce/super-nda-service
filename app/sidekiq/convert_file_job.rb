@@ -5,36 +5,39 @@
 require "convert_api"
 require "tempfile"
 require "fileutils"
+require "pdf-reader"
 
 class ConvertFileJob
   include Sidekiq::Job
 
-  def perform(directory_file_id, user_id)
-    directory_file = DirectoryFile.find(directory_file_id)
+  def perform(document_id)
+    document = Document.find(document_id)
 
-    return unless directory_file.file.attached? && directory_file.file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    return unless document.file.attached? && document.file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
-    directory_file.update!(conversion_status: :in_progress)
-
-    converted_temp_file = convert_to_pdf(directory_file)
+    converted_temp_file = convert_to_pdf(document)
     Rails.logger.info "Converted file: #{converted_temp_file.path}"
 
-    directory_file.converted_file.attach(
+    # Count the number of pages in the converted PDF
+    number_of_pages = count_pdf_pages(document, converted_temp_file.path)
+    Rails.logger.info "Number of pages in PDF: #{number_of_pages}"
+
+    document.converted_file.attach(
       io: File.open(converted_temp_file.path),
-      filename: "#{directory_file.file.filename.base}.pdf",
+      filename: "#{document.file.filename.base}.pdf",
       content_type: "application/pdf"
     )
 
-    Rails.logger.info "Attached file: #{directory_file.converted_file.filename}"
-    Rails.logger.info "Attached attached?: #{directory_file.converted_file.attached?}"
+    Rails.logger.info "Attached file: #{document.converted_file.content_type}"
+    Rails.logger.info "Attached file: #{document.converted_file.filename}"
+    Rails.logger.info "Attached attached?: #{document.converted_file.attached?}"
 
     clean_tempfile(converted_temp_file)
-    directory_file.update!(conversion_status: :completed)
   end
 
   private
 
-  def convert_to_pdf(df)    
+  def convert_to_pdf(df)
     begin
       download_blob_to_tempfile(df.file) do |tempfile|
         result = ConvertApi.convert("pdf", { File: tempfile.path })
@@ -65,5 +68,15 @@ class ConvertFileJob
     else
       Rails.logger.info "Tempfile does not exist."
     end
+  end
+
+  def count_pdf_pages(document, file_path)
+    reader = PDF::Reader.new(file_path)
+    document.update!(number_of_pages: reader.page_count)
+    reader.page_count
+  rescue PDF::Reader::MalformedPDFError, PDF::Reader::UnsupportedFeatureError => e
+    Rails.logger.error "Error reading PDF file: #{e.message}"
+    document.update!(number_of_pages: reader.page_count)
+    0
   end
 end

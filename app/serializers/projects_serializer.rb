@@ -16,7 +16,7 @@ class ProjectsSerializer < ApplicationSerializer
 
   attribute :user do |object|
     {
-      full_name: object.user.try(:full_name) || '-',
+      full_name: object.user.try(:full_name_reverse) || '-',
     }
   end
 

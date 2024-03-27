@@ -24,10 +24,21 @@ class V1::ProjectUsersController < V1::BaseController
   end 
 
   # PUT /v1/project_users/:hashid
-  def update    
+  def update
+    current_access = @project_user.access
+  
     if @project_user.update(update_project_user_params)
+      new_access = @project_user.access
+  
+      if current_access != new_access
+        ApplicationMailer.project_access_email(
+          @project_user.user_id,
+          @project_user.project_id
+        ).deliver_later
+      end
+  
       render(
-        json: { message: "Success"},
+        json: { message: "Success" },
         status: :ok
       )
     else

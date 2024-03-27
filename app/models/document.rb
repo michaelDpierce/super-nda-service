@@ -4,6 +4,7 @@
 
 class Document < ApplicationRecord
   include Hashid::Rails
+  hashid_config min_hash_length: 16
 
   before_validation :set_version_number, on: :create
   after_commit :run_project_stats_job
@@ -12,8 +13,14 @@ class Document < ApplicationRecord
   belongs_to :group
   belongs_to :project
 
-  has_one_attached :file, dependent: :destroy_async
+  has_one_attached :file, dependent: :destroy_async # DOCX
+  has_one_attached :converted_file, dependent: :destroy_async # PDF
+
+  # Party signatured is saved on each users profile
+  has_one_attached :counter_party_signature, dependent: :destroy_async #PNG
   
+  has_one_attached :signed_pdf, dependent: :destroy_async
+
   enum owner: {
     party: 0,
     counter_party: 1

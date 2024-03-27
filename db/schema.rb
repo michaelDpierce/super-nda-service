@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_16_182934) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_27_194338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -49,6 +49,17 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_182934) do
     t.integer "owner", default: 0
     t.integer "version_number"
     t.integer "project_id", null: false
+    t.string "counter_party_full_name"
+    t.string "counter_party_email"
+    t.datetime "counter_party_date"
+    t.string "counter_party_ip"
+    t.string "counter_party_user_agent"
+    t.string "party_full_name"
+    t.string "party_email"
+    t.datetime "party_date"
+    t.string "party_ip"
+    t.string "party_user_agent"
+    t.integer "number_of_pages"
     t.index ["group_id"], name: "index_documents_on_group_id"
   end
 
@@ -98,6 +109,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_16_182934) do
     t.datetime "end_date"
     t.integer "party_count", default: 0
     t.integer "counter_party_count", default: 0
+    t.string "code"
+    t.index ["code"], name: "index_projects_on_code"
   end
 
   create_table "users", force: :cascade do |t|

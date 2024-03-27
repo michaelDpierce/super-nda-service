@@ -6,10 +6,9 @@ class Group < ApplicationRecord
   include Hashid::Rails
 
   belongs_to :project
-  belongs_to :user
+  belongs_to :user, optional: true
 
   validates :project_id, presence: true
-  validates :user_id, presence: true
 
   has_one :last_document, class_name: 'Document', primary_key: 'last_document_id', foreign_key: 'id'
   has_many :documents, -> { order(version_number: :asc) }, class_name: 'Document', dependent: :destroy

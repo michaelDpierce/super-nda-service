@@ -206,7 +206,6 @@ class V1::ProjectsController < V1::BaseController
           
           return
         end
-  
       user = User.find_or_create_by!(email: email) do |user|
         user.first_name = params["data"]["first_name"] if params["data"]["first_name"].present?
         user.last_name  = params["data"]["last_name"]  if params["data"]["last_name"].present?
@@ -219,8 +218,6 @@ class V1::ProjectsController < V1::BaseController
           admin: params["data"]["admin"],
           access: params["data"]["access"]
         )
-
-      ApplicationMailer.project_access_email(user.id, @project.id).deliver_later
   
       render(
         json: ProjectUsersSerializer.new(project_user, includes: :user),
