@@ -131,13 +131,10 @@ class V1::GroupsController < V1::BaseController
     @group.update!(status: :signing) # Tracking the lifecycle of the group
 
     if last_document.party_date && last_document.counter_party_date
-      @group.update!(status: :complete)
-      last_document.update!(owner: nil) # Both parties have signed
-
       job_id = CompleteNdaJob.perform_async(last_document.id, @current_user.id)
       Rails.logger.info "Queued CompleteNDAJob for document_id: #{last_document.id} with job_id: #{job_id}"
     elsif last_document.party_date && !last_document.counter_party_date
-      last_document.update!(owner: :counter_party) # Set back to Counter Party Owned
+      last_document.update!(owner: :counter_party)
     end
 
     render json: GroupsSerializer.new(@group)

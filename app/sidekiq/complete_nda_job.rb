@@ -12,30 +12,47 @@ class CompleteNdaJob
   def perform(document_id, user_id)
     Rails.logger.info "CompleteNDAJob for document_id: #{document_id}"
     Rails.logger.info "CompleteNDAJob for user_id: #{user_id}"
-
-    document = Document.find(document_id)
-    blob     = document.converted_file.blob
-    user     = User.find(user_id)
+    
+    original_document = Document.find(document_id)
+    user              = User.find(user_id)
+    group             = original_document.group
+    project           = original_document.project
     
     party_signature         = user.signature&.download
-    counter_party_signature = document.counter_party_signature&.download
+    counter_party_signature = original_document.counter_party_signature&.download # TODO move to doing this on the group level
+
+    # Duplicate the original document for a new group context
+    new_document = original_document.dup
+
+    new_document.owner = nil
+    new_document.project_id = group.project_id
+
+    new_document.converted_file.attach(
+      io: StringIO.new(original_document.converted_file.download),
+      filename: original_document.converted_file.filename.to_s,
+      content_type: original_document.converted_file.content_type
+    )
+    
+    new_document.save!
+
+    blob = new_document.converted_file.blob
 
     party_data = [
-      ["Name",  document.party_full_name],
-      ["Email", document.party_email],
-      ["Date",  document.party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
-      ["IP",    document.party_ip],
-      ["Agent", document.party_user_agent],
+      ["Name",  new_document.party_full_name],
+      ["Email", new_document.party_email],
+      ["Date",  new_document.party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
+      ["IP",    new_document.party_ip],
+      ["Agent", new_document.party_user_agent],
       ["Security", "Authenticated"],
       ["Disclosure", "None"]
     ]
 
     counter_party_data = [
-      ["Name",  document.counter_party_full_name],
-      ["Email", document.counter_party_email],
-      ["Date",  document.counter_party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
-      ["IP",    document.counter_party_ip],
-      ["Agent", document.counter_party_user_agent],
+      ["Name",  new_document.counter_party_full_name],
+      ["Email", new_document.counter_party_email],
+      ["Date",  new_document.counter_party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
+      ["IP",    new_document.counter_party_ip],
+      ["Agent", new_document.counter_party_user_agent],
       ["Security", "Passcode"],
       ["Disclosure", "None"]
     ]
@@ -53,8 +70,8 @@ class CompleteNdaJob
       page_title(pdf, "Signed Completion Certification")
       page_space(pdf, 20)
     
-      page_text(pdf, "Document Unique ID", document.hashid)
-      page_text(pdf, "Document Page Count", document.number_of_pages || "-")
+      page_text(pdf, "Document Unique ID", new_document.hashid)
+      page_text(pdf, "Document Page Count", new_document.number_of_pages || "-")
       page_text(pdf, "Document Name", blob.filename)
 
       page_space(pdf, 20)
@@ -84,16 +101,19 @@ class CompleteNdaJob
     merged_pdf.save(merged_pdf_tempfile.path)
     merged_pdf_tempfile.rewind
 
+    filename = "#{project.name}_#{group.name}_NDA_V#{new_document.version_number}_SIGNED.pdf"
+    clean_filename = sanitize_filename(filename)
+
     # Replace the existing attachment with the merged PDF
-    document.signed_pdf.attach(
+    new_document.signed_pdf.attach(
       io: File.open(merged_pdf_tempfile.path),
-      filename: 'signed.pdf',
+      filename: clean_filename,
       content_type: 'application/pdf'
     )
 
-    document.save!
+    new_document.save!
 
-    puts "CompleteNDAJob for document_id: #{document_id} completed successfully!"
+    puts "CompleteNDAJob for document_id: #{new_document.id} completed successfully!"
 
     # Ensure tempfiles are closed and unlinked (deleted)
     ensure_tempfiles_cleanup(
@@ -119,7 +139,7 @@ class CompleteNdaJob
     pdf.fill_color "0A558C" # Hex code for blue
 
     # Render the text in the center, bold and blue
-    pdf.text text, align: :center
+    pdf.text text, align: :center, style: :bold
 
     # Reset the fill color to black if you're going to add more text in the default color
     pdf.fill_color "000000"
@@ -194,7 +214,11 @@ class CompleteNdaJob
     if signature
       pdf.image StringIO.new(signature), width: 100, height: 50
     else
-      pdf.text "No signature available.", size: 12
+      pdf.text "Missing Signature", size: 12
     end
+  end
+
+  def sanitize_filename(filename)
+    filename.gsub(/[^a-zA-Z0-9\-_.]/, '_')
   end
 end

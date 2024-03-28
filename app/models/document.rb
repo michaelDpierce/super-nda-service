@@ -48,6 +48,11 @@ class Document < ApplicationRecord
     sanitize_filename(filename)
   end
 
+  def generate_filename(version_number, ext)
+    filename = "#{self.project.name}_#{self.group.name}_NDA_V#{version_number}#{ext}"
+    sanitize_filename(filename)
+  end
+
   private
 
   def set_version_number

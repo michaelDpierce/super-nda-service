@@ -61,6 +61,27 @@ class Project < ApplicationRecord
     )
   end
 
+  def duplicate_blob(last_document_id, file_attribute, filename)
+    last_document = Document.find_by(id: last_document_id)
+    return nil unless last_document
+  
+    attachment = last_document.send(file_attribute)
+  
+    return nil unless attachment.attached?
+  
+    file_content = attachment.download
+    rewindable_io = StringIO.new(file_content)
+    
+    # Dynamically get the content type from the attachment's blob
+    content_type = attachment.blob.content_type
+  
+    ActiveStorage::Blob.create_and_upload!(
+      io: rewindable_io,
+      filename: filename,
+      content_type: content_type
+    )
+  end
+
   def stats
     counts = groups.group(:status).count
     
