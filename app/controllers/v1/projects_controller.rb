@@ -38,8 +38,12 @@ class V1::ProjectsController < V1::BaseController
       ProjectUser.where(user_id: @current_user.id)
         .pluck(:project_id)
   
-    @projects = @resource.where(id: project_ids).includes(:user)
-  
+    @projects =
+      @resource.where(id: project_ids)
+        .includes(:project_users, :users, :groups)
+        .with_attached_template
+        .with_attached_logo
+        
     respond_to do |format|
       format.json do
         render json:
@@ -327,7 +331,7 @@ class V1::ProjectsController < V1::BaseController
     basic_search_resource_by!
     order_resource!
 
-    @resource = @resource.includes(:project_users, :users)
+    @resource
   end
 
   def load_resource!
@@ -357,12 +361,20 @@ class V1::ProjectsController < V1::BaseController
         'End Date',
         'ID',
         'Created At',
-        'Updated At'
+        'Updated At',
+        'Total Users',
+        'Total Admin Users',
+        'Total Groups',
+        'Template Attached'
       ]
 
       projects.each do |project|
-        start_date = project.start_date.strftime("%Y-%m-%d %H:%M:%S %Z")
-        end_date   = project.end_date ? project.end_date.strftime("%Y-%m-%d %H:%M:%S %Z") : 'Current'
+        start_date        = project.start_date.strftime("%Y-%m-%d %H:%M:%S %Z")
+        end_date          = project.end_date ? project.end_date.strftime("%Y-%m-%d %H:%M:%S %Z") : 'Current'
+        total_users       = project.users.count
+        total_admin_users = project.admin_users.count
+        total_groups      = project.groups.count
+        template_attached = project.template.attached? ? 'Y' : 'N'
 
         csv << [
           project.name,
@@ -374,7 +386,11 @@ class V1::ProjectsController < V1::BaseController
           end_date,
           project.hashid,
           project.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          project.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z")
+          project.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          total_users,
+          total_admin_users,
+          total_groups,
+          template_attached
         ]
       end
     end
