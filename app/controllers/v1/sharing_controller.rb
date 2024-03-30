@@ -33,7 +33,12 @@ class V1::SharingController < V1::BaseController
   def reclaim
     last_document_id = @group.last_document_id
 
-    document = @group.documents.create!(owner: params["owner"], project_id: @group.project_id)
+    document = @group.documents.create!(
+      owner: params["owner"],
+      project_id: @group.project_id,
+      group_status_at_creation: @group.status
+    )
+
     filename = document.generate_reclaimed_filename(last_document_id)
   
     new_blob = @group.project.duplicate_version_blob(last_document_id, filename)
@@ -53,7 +58,8 @@ class V1::SharingController < V1::BaseController
     document =
       @group.documents.create!(
         owner:      nil, # No owner until Party or Counterparty signs
-        project_id: project.id
+        project_id: project.id,
+        group_status_at_creation: @group.status
       )
 
     filename = document.generate_sanitized_filename
@@ -133,7 +139,8 @@ class V1::SharingController < V1::BaseController
       document =
         new_group.documents.create!(
           owner:      :counter_party,
-          project_id: new_group.project_id
+          project_id: new_group.project_id,
+          group_status_at_creation: new_group.status
         )
 
       filename = document.generate_sanitized_filename
@@ -202,7 +209,11 @@ class V1::SharingController < V1::BaseController
 
   def create_document_from_file(file)
     document =
-      @group.documents.create!(owner: :party, project_id: @group.project_id)
+      @group.documents.create!(
+        owner: :party,
+        project_id: @group.project_id,
+        group_status_at_creation: @group.status
+      )
 
     filename = document.generate_sanitized_filename
     new_blob = @group.project.create_template_blob(filename)

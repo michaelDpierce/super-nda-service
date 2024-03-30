@@ -71,7 +71,7 @@ class V1::GroupsController < V1::BaseController
   # GET /v1/groups/:hashid/
   def show
     if @group.present?
-      render json: GroupSerializer.new(@group, include: [:documents])
+      render json: GroupSerializer.new(@group, include: [:documents, :users])
     else
       render json: { errors: 'Group not found' }, status: :not_found
     end
@@ -93,7 +93,12 @@ class V1::GroupsController < V1::BaseController
   # POST /v1/groups/:hashid/upload
   def upload
     document =
-      @group.documents.create!(owner: :counter_party, project_id: @group.project_id)
+      @group.documents.create!(
+        owner: :counter_party,
+        project_id: @group.project_id,
+        creator_id: @current_user.try(:id),
+        group_status_at_creation: @group.status
+      )
 
     filename = document.generate_sanitized_filename
     new_blob = @project.create_template_blob(filename)
@@ -111,7 +116,14 @@ class V1::GroupsController < V1::BaseController
   def change_owner
     last_document_id = @group.last_document_id
 
-    document = @group.documents.create!(owner: params['owner'], project_id: @group.project_id)
+    document =
+      @group.documents.create!(
+        owner: params['owner'],
+        project_id: @group.project_id,
+        creator_id: @current_user.try(:id),
+        group_status_at_creation: @group.status
+      )
+
     filename = document.generate_reclaimed_filename(last_document_id)
   
     new_blob = @project.duplicate_version_blob(last_document_id, filename)

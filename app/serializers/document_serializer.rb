@@ -8,8 +8,13 @@ class DocumentSerializer < ApplicationSerializer
 
   attribute :owner,
             :version_number,
+            :created_by,
             :created_at,
             :updated_at
+
+  attribute :pretty_status do |object|
+    object&.group_status_at_creation&.titleize || '-'
+  end
 
   # Attribute to return file information
   attribute :file_info do |object|

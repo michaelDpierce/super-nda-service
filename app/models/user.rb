@@ -23,7 +23,7 @@ class User < ApplicationRecord
     through: :project_users_with_access
 
   def full_name_reverse
-    "#{last_name}, #{first_name} "
+    "#{last_name}, #{first_name}"
   end
 
   def full_name
