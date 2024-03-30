@@ -150,40 +150,49 @@ class V1::ProjectsController < V1::BaseController
 
   # GET /v1/projects/:hashid/export_groups.csv
   def export_groups
-    groups = @project.groups.includes(:user)
+    groups            = @project.groups.includes(:user)
+    last_document_ids = groups.pluck(:last_document_id).compact
+    last_documents    = Document.where(id: last_document_ids)
 
     data = CSV.generate(headers: true) do |csv|
       base_url = "#{ENV['SERVER_PROTOCOL']}://#{ENV['SERVER_HOST']}/sharing"
 
       csv << [
         "Name",
-        "Status",
         "Owner Name",
         "Owner Email",
-        "Code",
-        "URL",
+        "Status",
+        "Last Interaction",
         "Share Link",
+        "URL",
+        "Code",
+        "Version #",
+        "Document Unique ID",
+        "Notes",
         "ID",
         "Created At",
-        "Updated At",
-        "Notes"
+        "Updated At"
       ]
 
       groups.each do |group|
+        last_document = last_documents.find_by(id: group.last_document_id)
         share_link = "#{base_url}/#{group.hashid}?code=#{group.code}"
 
         csv << [
           group.name,
-          group.status&.titleize,
           group.user.try(:full_name),
           group.user.try(:email),
-          group.code.to_s,
-          "#{base_url}/#{group.hashid}",
+          group.status&.titleize,
+          last_document&.created_at&.strftime("%Y-%m-%d %H:%M:%S %Z"),
           share_link,
+          "#{base_url}/#{group.hashid}",
+          group.code.to_s,
+          last_document&.version_number.to_s,
+          last_document&.hashid,
+          group.notes,
           group.hashid,
           group.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          group.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          group.notes
+          group.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z")
         ]
       end
     end
