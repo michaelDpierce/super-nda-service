@@ -5,6 +5,8 @@
 class V1::GroupsController < V1::BaseController
   before_action :find_group, only: %i[show update destroy upload change_owner sign]
   before_action :load_project!, only: %i[update destroy upload change_owner sign]
+  
+  before_action :set_paper_trail_whodunnit
 
   # POST /v1/projects
   def create
@@ -76,9 +78,15 @@ class V1::GroupsController < V1::BaseController
   end
 
   # DELETE /v1/groups/:hashid
-  def destroy    
-    @group.documents.destroy_all
-    @group.destroy!
+  def destroy
+    # ActiveRecord::Base.transaction do
+      last_document = @group.last_document
+      last_document.destroy! if last_document.present?
+    
+      @group.documents.destroy_all
+      @group.destroy!
+    # end
+    
     head(:no_content)
   end
 
@@ -160,12 +168,22 @@ class V1::GroupsController < V1::BaseController
 
   def create_new_document(group, owner)
     document =
-      group.documents.create!(owner: owner, project_id: group.project_id)
+      group.documents.create!(
+        owner: owner,
+        project_id:
+        group.project_id,
+        creator_id: @current_user.try(:id),
+        group_status_at_creation: group.status
+      )
   
     filename = document.generate_sanitized_filename
     new_blob = @project.create_template_blob(filename)
 
     document.file.attach(new_blob)
     document.save!
+  end
+
+  def set_paper_trail_whodunnit
+    PaperTrail.request.whodunnit = @current_user.id.to_s if @current_user
   end
 end

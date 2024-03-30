@@ -11,6 +11,8 @@ class User < ApplicationRecord
 
   has_one_attached :signature, dependent: :destroy_async
 
+  has_many :documents, foreign_key: 'creator_id', dependent: :destroy_async
+
   has_many :project_users, dependent: :destroy_async
   has_many :projects, through: :project_users
 

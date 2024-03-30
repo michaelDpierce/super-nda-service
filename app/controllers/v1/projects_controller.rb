@@ -43,7 +43,7 @@ class V1::ProjectsController < V1::BaseController
         .includes(:project_users, :users, :groups)
         .with_attached_template
         .with_attached_logo
-        
+
     respond_to do |format|
       format.json do
         render json:
@@ -235,11 +235,10 @@ class V1::ProjectsController < V1::BaseController
   # POST /v1/projects/:hashid/create_groups
   def create_groups
     group_names = params["data"]["group_names"].split(",")
-
     existing_group_names = @project.groups.where(name: group_names).pluck(:name)
-    existing_count = existing_group_names.length
-  
     new_group_names = group_names - existing_group_names
+  
+    # Step 1: Prepare data for new groups, assuming each has a unique name or other unique attributes
     new_groups = new_group_names.map do |name|
       {
         name: name,
@@ -251,26 +250,44 @@ class V1::ProjectsController < V1::BaseController
       }
     end
   
-    begin
-      @project.groups.insert_all(new_groups) if new_groups.any?
-      created_count = new_groups.length
+    # Bulk Insert Groups
+    @project.groups.insert_all(new_groups)
   
-      total_count = @project.groups.count
+    # Step 2: Retrieve newly inserted groups to capture their IDs
+    # This assumes 'name' is unique enough to identify them; adjust as needed for your case
+    inserted_groups = @project.groups.where(name: new_group_names).pluck(:id, :name)
   
-      render json: {
-        total_groups: total_count,
-        new_groups_created: created_count,
-        existing_groups: existing_count,
-        groups:
-          GroupsSerializer.new(
-            @project.groups.includes(:user), {}
-          )
-      }, status: :created
-    rescue => e
-      render json: { 
-        error: "Failed to create groups: #{e.message}"
-      }, status: :unprocessable_entity
+    # Step 3: Prepare version data for each inserted group
+    version_data = inserted_groups.map do |id, name|
+      {
+        item_type: 'Group',
+        item_id: id,
+        event: 'create',
+        whodunnit: @current_user.id.to_s,
+        object: nil,
+        created_at: Time.current,
+        ip_address: request.remote_ip,
+        user_agent: request.user_agent
+      }
     end
+  
+    # Bulk Insert Version Records
+    # PaperTrail::Version.insert_all(version_data)
+    Version.insert_all(version_data)
+
+    total_count = @project.groups.count
+    created_count = new_group_names.length
+  
+    render json: {
+      total_groups: total_count,
+      new_groups_created: created_count,
+      existing_groups: existing_group_names.length,
+      groups: GroupsSerializer.new(@project.groups.includes(:user), {}).serializable_hash
+    }, status: :created
+  rescue => e
+    render json: { 
+      error: "Failed to create groups: #{e.message}"
+    }, status: :unprocessable_entity
   end
 
   def groups
@@ -313,7 +330,8 @@ class V1::ProjectsController < V1::BaseController
   def update_project_params
     params
       .require(:project)
-      .permit(:name, :description, :status, :action, :logo, :template)
+      .permit(:name, :description, :status, :action, :logo, :template,
+              :authorized_agent_of_signatory_user_id)
       .select { |x,v| v.present? }
   end
 

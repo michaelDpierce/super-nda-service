@@ -157,6 +157,25 @@ class V1::SharingController < V1::BaseController
     end
   end
 
+  def create_analytic
+    render_unauthorized_access unless params[:id].present?
+
+    group    = Group.find(params[:id])
+    document = Document.find(params[:document_id])
+
+    DocumentAnalytic.create!(
+      project_id: group.project_id,
+      group_id: group.id,
+      document_id: document.id,
+      version_number: document.version_number,
+      action_type: params[:action_type],
+      counter_party_ip: request.remote_ip,
+      counter_party_user_agent: request.user_agent
+    )
+
+    render json: { message: "Success" }, status: :ok
+  end
+
   private
 
   def verify_group

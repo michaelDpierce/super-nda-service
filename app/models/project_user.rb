@@ -5,7 +5,7 @@
 class ProjectUser < ApplicationRecord
   include Hashid::Rails
 
-  has_paper_trail
+  has_paper_trail skip: [:last_viewed_at]
   
   belongs_to :project
   belongs_to :user

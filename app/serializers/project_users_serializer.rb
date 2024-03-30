@@ -13,7 +13,7 @@ class ProjectUsersSerializer < ApplicationSerializer
             :updated_at
 
   attribute :user_id do |object|
-    object.user.hashid
+    object.user.id
   end
 
   attribute :email do |object|
@@ -28,11 +28,19 @@ class ProjectUsersSerializer < ApplicationSerializer
     object.user.last_name || "-"
   end
 
+  attribute :full_name do |object|
+    object.user.full_name_reverse || "-"
+  end
+
   attribute :last_login do |object|
     object.user.last_login
   end
 
   attribute :created_account do |object|
     object.user.source_id ? true : false
+  end
+
+  attribute :has_signature do |object|
+    object.user.signature.attached?
   end
 end

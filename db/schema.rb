@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_03_27_194338) do
+ActiveRecord::Schema[7.1].define(version: 2024_03_30_205703) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,13 +42,25 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_194338) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "document_analytics", force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.bigint "group_id", null: false
+    t.bigint "document_id", null: false
+    t.integer "version_number"
+    t.integer "action_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "counter_party_ip"
+    t.string "counter_party_user_agent"
+  end
+
   create_table "documents", force: :cascade do |t|
     t.bigint "group_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "owner", default: 0
+    t.bigint "owner", default: 0
     t.integer "version_number"
-    t.integer "project_id", null: false
+    t.bigint "project_id", null: false
     t.string "counter_party_full_name"
     t.string "counter_party_email"
     t.datetime "counter_party_date"
@@ -60,19 +72,22 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_194338) do
     t.string "party_ip"
     t.string "party_user_agent"
     t.integer "number_of_pages"
+    t.integer "group_status_at_creation"
+    t.bigint "creator_id"
+    t.index ["creator_id"], name: "index_documents_on_creator_id"
     t.index ["group_id"], name: "index_documents_on_group_id"
   end
 
   create_table "groups", force: :cascade do |t|
     t.string "name"
     t.integer "status", default: 1
-    t.integer "user_id"
-    t.integer "project_id"
+    t.bigint "user_id"
+    t.bigint "project_id"
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "code"
-    t.integer "last_document_id"
+    t.bigint "last_document_id"
     t.index ["code"], name: "index_groups_on_code"
     t.index ["last_document_id"], name: "index_groups_on_last_document_id"
     t.index ["project_id", "name", "status"], name: "index_groups_on_project_id_and_name_and_status"
@@ -88,20 +103,20 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_194338) do
   end
 
   create_table "project_users", force: :cascade do |t|
-    t.integer "project_id"
-    t.integer "user_id"
+    t.bigint "project_id"
+    t.bigint "user_id"
     t.boolean "admin", default: false
     t.datetime "last_viewed_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "access", default: false
-    t.integer "group_id"
+    t.bigint "group_id"
   end
 
   create_table "projects", force: :cascade do |t|
     t.string "name"
     t.text "description"
-    t.integer "user_id"
+    t.bigint "user_id"
     t.integer "status", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -110,6 +125,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_194338) do
     t.integer "party_count", default: 0
     t.integer "counter_party_count", default: 0
     t.string "code"
+    t.bigint "authorized_agent_of_signatory_user_id"
     t.index ["code"], name: "index_projects_on_code"
   end
 
@@ -141,4 +157,5 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_27_194338) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "documents", "groups"
   add_foreign_key "documents", "projects"
+  add_foreign_key "documents", "users", column: "creator_id"
 end

@@ -113,7 +113,7 @@ class CompleteNdaJob
 
     new_document.save!
 
-    puts "CompleteNDAJob for document_id: #{new_document.id} completed successfully!"
+    Rails.logger.info "CompleteNDAJob for document_id: #{new_document.id} completed successfully!"
 
     # Ensure tempfiles are closed and unlinked (deleted)
     ensure_tempfiles_cleanup(

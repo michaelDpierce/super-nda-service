@@ -7,6 +7,8 @@ class V1::ProjectUsersController < V1::BaseController
   before_action :load_project_user, only: %i[index]
   before_action :find_project_user, only: %i[update destroy]
 
+  before_action :set_paper_trail_whodunnit
+
    # GET /v1/project_users
   def index
     render(
@@ -75,5 +77,9 @@ class V1::ProjectUsersController < V1::BaseController
     params
       .require(:project_user)
       .permit(%i[id access admin])
+  end
+
+  def set_paper_trail_whodunnit
+    PaperTrail.request.whodunnit = @current_user.id.to_s if @current_user
   end
 end

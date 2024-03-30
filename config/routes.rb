@@ -49,11 +49,12 @@ Rails.application.routes.draw do
     put '/settings',        to: 'settings#update'
 
     # Share Links
-    post '/verify_code', to: 'sharing#verify_code'
-    post '/upload',      to: 'sharing#upload'
-    post '/reclaim',     to: 'sharing#reclaim'
-    post '/signing',     to: 'sharing#signing'
-    post '/sign',        to: 'sharing#sign'
+    post '/verify_code',      to: 'sharing#verify_code'
+    post '/upload',           to: 'sharing#upload'
+    post '/reclaim',          to: 'sharing#reclaim'
+    post '/signing',          to: 'sharing#signing'
+    post '/sign',             to: 'sharing#sign'
+    post '/create_analytic' , to: 'sharing#create_analytic'
 
     post '/verify_project_code', to: 'sharing#verify_project_code'
     post '/create_group',        to: 'sharing#create_group'
