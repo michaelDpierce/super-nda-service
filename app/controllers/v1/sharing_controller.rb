@@ -53,22 +53,22 @@ class V1::SharingController < V1::BaseController
 
   # POST /v1/signing
   def signing
-    project = @group.project
+    last_document_id = @group.last_document_id
 
-    document =
+    new_document =
       @group.documents.create!(
         owner:      nil, # No owner until Party or Counterparty signs
-        project_id: project.id,
-        group_status_at_creation: @group.status
+        project_id: @group.project_id,
+        group_status_at_creation: :signing
       )
 
-    filename = document.generate_sanitized_filename
-    new_blob = project.create_template_blob(filename)
+    # filename = document.generate_sanitized_filename
+    # new_blob = project.create_template_blob(filename)
   
-    document.file.attach(new_blob)
-    document.save!
+    # document.file.attach(new_blob)
+    # document.save!
 
-    ConvertFileJob.perform_async(document.id)
+    ConvertFileJob.perform_async(last_document_id, new_document.id)
 
     @group.update!(status: :signing) # Tracking the lifecycle of the group
 
@@ -180,7 +180,7 @@ class V1::SharingController < V1::BaseController
       counter_party_user_agent: request.user_agent
     )
 
-    render json: { message: "Success" }, status: :ok
+    render json: { message: "Success", action: params[:action_type] }, status: :ok
   end
 
   private

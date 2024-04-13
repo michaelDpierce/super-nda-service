@@ -139,6 +139,13 @@ class V1::GroupsController < V1::BaseController
   # GET /v1/groups/:hashid/sign
   def sign
     last_document = @group.last_document
+    project       = Project.find(@group.project_id)
+
+    if project.authorized_agent_of_signatory_user_id.present?
+      user_id = project.authorized_agent_of_signatory_user_id
+    else
+      user_id = @current_user.id
+    end
   
     last_document.update!(
       party_full_name: @current_user.full_name,
@@ -151,7 +158,7 @@ class V1::GroupsController < V1::BaseController
     @group.update!(status: :signing) # Tracking the lifecycle of the group
 
     if last_document.party_date && last_document.counter_party_date
-      job_id = CompleteNdaJob.perform_async(last_document.id, @current_user.id)
+      job_id = CompleteNdaJob.perform_async(last_document.id, user_id, @current_user.id)
       Rails.logger.info "Queued CompleteNDAJob for document_id: #{last_document.id} with job_id: #{job_id}"
     elsif last_document.party_date && !last_document.counter_party_date
       last_document.update!(owner: :counter_party)

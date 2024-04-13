@@ -9,9 +9,10 @@ class CompleteNdaJob
 
   include Sidekiq::Job
 
-  def perform(document_id, user_id)
+  def perform(document_id, user_id, current_user_id)
     Rails.logger.info "CompleteNDAJob for document_id: #{document_id}"
     Rails.logger.info "CompleteNDAJob for user_id: #{user_id}"
+    Rails.logger.info "CompleteNDAJob for current_user_id: #{current_user_id}"
     
     original_document = Document.find(document_id)
     user              = User.find(user_id)
@@ -19,27 +20,26 @@ class CompleteNdaJob
     project           = original_document.project
     
     party_signature         = user.signature&.download
-    counter_party_signature = original_document.counter_party_signature&.download # TODO move to doing this on the group level
+    counter_party_signature = original_document.counter_party_signature&.download
 
     # Duplicate the original document for a new group context
     new_document = original_document.dup
 
-    new_document.owner = nil
+    new_document.owner      = nil
     new_document.project_id = group.project_id
+    new_document.creator_id = current_user_id
+    new_document.group_status_at_creation = :complete
 
-    new_document.converted_file.attach(
-      io: StringIO.new(original_document.converted_file.download),
-      filename: original_document.converted_file.filename.to_s,
-      content_type: original_document.converted_file.content_type
-    )
-    
     new_document.save!
 
-    blob = new_document.converted_file.blob
+    blob = original_document.file.blob
+
+    party_full_name = user.full_name
+    party_email     = user.email
 
     party_data = [
-      ["Name",  new_document.party_full_name],
-      ["Email", new_document.party_email],
+      ["Name",  party_full_name],
+      ["Email", party_email],
       ["Date",  new_document.party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
       ["IP",    new_document.party_ip],
       ["Agent", new_document.party_user_agent],
@@ -105,7 +105,7 @@ class CompleteNdaJob
     clean_filename = sanitize_filename(filename)
 
     # Replace the existing attachment with the merged PDF
-    new_document.signed_pdf.attach(
+    new_document.file.attach(
       io: File.open(merged_pdf_tempfile.path),
       filename: clean_filename,
       content_type: 'application/pdf'
@@ -114,6 +114,8 @@ class CompleteNdaJob
     new_document.save!
 
     Rails.logger.info "CompleteNDAJob for document_id: #{new_document.id} completed successfully!"
+
+    group.update!(status: :complete) # Mark the group as complete
 
     # Ensure tempfiles are closed and unlinked (deleted)
     ensure_tempfiles_cleanup(

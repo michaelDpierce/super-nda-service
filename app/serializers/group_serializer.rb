@@ -32,14 +32,8 @@ class GroupSerializer < ApplicationSerializer
     object.last_document&.counter_party_date
   end
 
-  attribute :files do |object|
-    last_document = object.last_document
-    
-    {
-      docx_url: generate_blob_url_for(last_document&.file),
-      pdf_url: generate_blob_url_for(last_document&.converted_file),
-      signed_pdf_url: generate_blob_url_for(last_document&.signed_pdf)
-    }
+  attribute :url do |object|    
+    generate_blob_url_for(object&.last_document&.file)
   end
 
   private

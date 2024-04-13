@@ -10,10 +10,12 @@ require "pdf-reader"
 class ConvertFileJob
   include Sidekiq::Job
 
-  def perform(document_id)
-    document = Document.find(document_id)
+  def perform(document_id, new_document_id)
+    document     = Document.find(document_id)
+    new_document = Document.find(new_document_id)
 
     return unless document.file.attached? && document.file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    return unless new_document.present?
 
     converted_temp_file = convert_to_pdf(document)
     Rails.logger.info "Converted file: #{converted_temp_file.path}"
@@ -22,15 +24,15 @@ class ConvertFileJob
     number_of_pages = count_pdf_pages(document, converted_temp_file.path)
     Rails.logger.info "Number of pages in PDF: #{number_of_pages}"
 
-    document.converted_file.attach(
+    new_document.file.attach(
       io: File.open(converted_temp_file.path),
       filename: "#{document.file.filename.base}.pdf",
       content_type: "application/pdf"
     )
 
-    Rails.logger.info "Attached file: #{document.converted_file.content_type}"
-    Rails.logger.info "Attached file: #{document.converted_file.filename}"
-    Rails.logger.info "Attached attached?: #{document.converted_file.attached?}"
+    Rails.logger.info "Content Type: #{new_document.file.content_type}"
+    Rails.logger.info "Filename: #{new_document.file.filename}"
+    Rails.logger.info "Attached?: #{new_document.file.attached?}"
 
     clean_tempfile(converted_temp_file)
   end
