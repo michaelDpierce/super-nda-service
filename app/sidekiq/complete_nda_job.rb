@@ -22,6 +22,9 @@ class CompleteNdaJob
     party_signature         = user.signature&.download
     counter_party_signature = original_document.counter_party_signature&.download
 
+    # Set Working
+    group.update!(job_status: :working)
+    
     # Duplicate the original document for a new group context
     new_document = original_document.dup
 
@@ -121,6 +124,10 @@ class CompleteNdaJob
     ensure_tempfiles_cleanup(
       [existing_pdf_tempfile, new_pdf_tempfile, merged_pdf_tempfile]
     )
+
+    group.update!(job_status: :completed)
+
+    # TODO, mark if job fails
   end
 
   private

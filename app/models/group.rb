@@ -23,4 +23,12 @@ class Group < ApplicationRecord
     signing: 4,
     complete: 5
   }
+
+  enum job_status: {
+    not_started: 0,
+    in_queue: 1,
+    working: 2,
+    completed: 3,
+    failed: 4
+  }
 end

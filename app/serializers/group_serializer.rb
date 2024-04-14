@@ -12,7 +12,9 @@ class GroupSerializer < ApplicationSerializer
             :user_id,
             :code,
             :created_at,
-            :updated_at
+            :updated_at,
+            :job_id,
+            :job_status
 
   has_many :documents, serializer: DocumentSerializer
 

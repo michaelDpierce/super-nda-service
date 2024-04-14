@@ -34,9 +34,6 @@ class V1::GroupsController < V1::BaseController
         if current_status == 'queued' && @group.status == 'sent'
           Rails.logger.info "Group status change from Queued to Sent"
           create_new_document(@group, :counter_party)
-        elsif current_status == 'signing' && @group.status == 'negotiating' #TODO MAKE SURE THIS DUPLICATES THE LAST_DOCUMENT VERSION
-          Rails.logger.info "Group status change from Signing to Negotiating"
-          create_new_document(@group, :party)
         elsif current_status == 'sent' && @group.status == 'queued'
           render json: { 
             errors: 'You cannot change the status from Sent back to Queued.'
@@ -183,13 +180,10 @@ class V1::GroupsController < V1::BaseController
       party_user_agent: request.user_agent
     )
 
-    @group.update!(status: :signing) # Tracking the lifecycle of the group
-
     if last_document.party_date && last_document.counter_party_date
       job_id = CompleteNdaJob.perform_async(last_document.id, user_id, @current_user.id)
+      @group.update!(job_id: job_id, job_status: :in_queue)
       Rails.logger.info "Queued CompleteNDAJob for document_id: #{last_document.id} with job_id: #{job_id}"
-    elsif last_document.party_date && !last_document.counter_party_date
-      last_document.update!(owner: :counter_party) #TODO is this needed?
     end
 
     render json: GroupsSerializer.new(@group)
