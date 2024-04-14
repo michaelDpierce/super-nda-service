@@ -19,13 +19,8 @@ class Document < ApplicationRecord
   belongs_to :project
 
   has_one_attached :file, dependent: :destroy_async # DOCX
-  has_one_attached :converted_file, dependent: :destroy_async # PDF
-
-  # Party signatured is saved on each users profile
   has_one_attached :counter_party_signature, dependent: :destroy_async #PNG
   
-  has_one_attached :signed_pdf, dependent: :destroy_async
-
   enum owner: {
     party: 0,
     counter_party: 1
@@ -63,11 +58,6 @@ class Document < ApplicationRecord
     group_name = self.group.name
     filename   = "#{self.project.name}_#{group_name}_NDA_V#{version_number}#{ext}"
 
-    sanitize_filename(filename)
-  end
-
-  def generate_filename(version_number, ext)
-    filename = "#{self.project.name}_#{self.group.name}_NDA_V#{version_number}#{ext}"
     sanitize_filename(filename)
   end
 

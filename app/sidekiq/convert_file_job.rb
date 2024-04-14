@@ -13,6 +13,8 @@ class ConvertFileJob
   def perform(document_id, new_document_id)
     document     = Document.find(document_id)
     new_document = Document.find(new_document_id)
+    group        = document.group
+    project      = group.project
 
     return unless document.file.attached? && document.file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     return unless new_document.present?
@@ -20,15 +22,22 @@ class ConvertFileJob
     converted_temp_file = convert_to_pdf(document)
     Rails.logger.info "Converted file: #{converted_temp_file.path}"
 
-    # Count the number of pages in the converted PDF
-    number_of_pages = count_pdf_pages(document, converted_temp_file.path)
-    Rails.logger.info "Number of pages in PDF: #{number_of_pages}"
+    filename =
+      "#{project.name}_#{group.name}_NDA_V#{new_document.version_number}.pdf"
+
+    sanitize_filename = filename.gsub(ALLOWED_FILENAME_CHARS, '')
 
     new_document.file.attach(
       io: File.open(converted_temp_file.path),
-      filename: "#{document.file.filename.base}.pdf",
+      filename: sanitize_filename,
       content_type: "application/pdf"
     )
+
+    new_document.save!
+
+    # Count the number of pages in the converted PDF
+    number_of_pages = count_pdf_pages(new_document, converted_temp_file.path)
+    Rails.logger.info "Number of pages in PDF: #{number_of_pages}"
 
     Rails.logger.info "Content Type: #{new_document.file.content_type}"
     Rails.logger.info "Filename: #{new_document.file.filename}"

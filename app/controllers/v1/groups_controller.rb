@@ -34,7 +34,7 @@ class V1::GroupsController < V1::BaseController
         if current_status == 'queued' && @group.status == 'sent'
           Rails.logger.info "Group status change from Queued to Sent"
           create_new_document(@group, :counter_party)
-        elsif current_status == 'signing' && @group.status == 'negotiating'
+        elsif current_status == 'signing' && @group.status == 'negotiating' #TODO MAKE SURE THIS DUPLICATES THE LAST_DOCUMENT VERSION
           Rails.logger.info "Group status change from Signing to Negotiating"
           create_new_document(@group, :party)
         elsif current_status == 'sent' && @group.status == 'queued'
@@ -92,6 +92,8 @@ class V1::GroupsController < V1::BaseController
 
   # POST /v1/groups/:hashid/upload
   def upload
+    file = params[:file]
+
     document =
       @group.documents.create!(
         owner: :counter_party,
@@ -101,13 +103,18 @@ class V1::GroupsController < V1::BaseController
       )
 
     filename = document.generate_sanitized_filename
-    new_blob = @project.create_template_blob(filename)
-  
-    document.file.attach(new_blob)
+
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: file, 
+      filename: filename,
+      content_type: file.content_type
+    )
+
+    document.file.attach(blob)
+      
     document.save!
 
-    # Ensure that if the party manually uploaded the first document the status is set to negotiating
-    @group.update!(status: :negotiating)
+    @group.update!(status: :negotiating) # Ensure that if the party manually uploaded the first document the status is set to negotiating
 
     render json: { data: document, message: "Success" }, status: :ok
   end

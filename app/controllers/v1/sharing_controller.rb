@@ -23,9 +23,7 @@ class V1::SharingController < V1::BaseController
   # POST /v1/upload
   def upload
     document = create_document_from_file(params[:file])
-
     update_group_status_if_negotiating(document)
-    
     render json: SharingSerializer.new(@group)
   end
 
@@ -40,7 +38,6 @@ class V1::SharingController < V1::BaseController
     )
 
     filename = document.generate_reclaimed_filename(last_document_id)
-  
     new_blob = @group.project.duplicate_version_blob(last_document_id, filename)
     
     document.file.attach(new_blob)
@@ -57,16 +54,10 @@ class V1::SharingController < V1::BaseController
 
     new_document =
       @group.documents.create!(
-        owner:      nil, # No owner until Party or Counterparty signs
+        owner:      :counter_party, # Counter party is signing, party signs second
         project_id: @group.project_id,
         group_status_at_creation: :signing
       )
-
-    # filename = document.generate_sanitized_filename
-    # new_blob = project.create_template_blob(filename)
-  
-    # document.file.attach(new_blob)
-    # document.save!
 
     ConvertFileJob.perform_async(last_document_id, new_document.id)
 
@@ -144,7 +135,7 @@ class V1::SharingController < V1::BaseController
         )
 
       filename = document.generate_sanitized_filename
-      new_blob = @project.create_template_blob(filename)
+      new_blob = @project.create_template_blob(filename) # For creating a new group with the base template
     
       document.file.attach(new_blob)
       document.save!
@@ -190,6 +181,10 @@ class V1::SharingController < V1::BaseController
 
     numeric_id = Group.decode_id(params[:id])
     @group = Group.find_by!(id: numeric_id, code: params[:code])
+    
+    if @group.status == "sent"
+      @group.update!(status: :negotiating) # Set to negotiating if viewing share link for first time
+    end
   rescue ActiveRecord::RecordNotFound
     render_unauthorized_access
   end
@@ -216,9 +211,15 @@ class V1::SharingController < V1::BaseController
       )
 
     filename = document.generate_sanitized_filename
-    new_blob = @group.project.create_template_blob(filename)
-  
-    document.file.attach(new_blob)
+
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: file, 
+      filename: filename,
+      content_type: file.content_type
+    )
+
+    document.file.attach(blob)
+    
     document.save!
     document
   end
