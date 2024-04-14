@@ -36,6 +36,10 @@ class GroupSerializer < ApplicationSerializer
     generate_blob_url_for(object&.last_document&.file)
   end
 
+  attribute :has_signature do |object, params|
+    params[:has_signature]
+  end
+
   private
 
   def self.generate_blob_url_for(attachment)

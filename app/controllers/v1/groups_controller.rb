@@ -4,7 +4,7 @@
 
 class V1::GroupsController < V1::BaseController
   before_action :find_group, only: %i[show update destroy upload change_owner sign]
-  before_action :load_project!, only: %i[update destroy upload change_owner sign]
+  before_action :load_project!, only: %i[show update destroy upload change_owner sign]
   
   before_action :set_paper_trail_whodunnit
 
@@ -71,7 +71,28 @@ class V1::GroupsController < V1::BaseController
   # GET /v1/groups/:hashid/
   def show
     if @group.present?
-      render json: GroupSerializer.new(@group, include: [:documents, :users])
+      if @project.authorized_agent_of_signatory_user_id
+        user = User.find(@project.authorized_agent_of_signatory_user_id)
+
+        if user.signature.attached?
+          has_signature = true
+        else
+          has_signature = false
+        end
+      else
+        if @current_user.signature.attached?
+          has_signature = true
+        else
+          has_signature = false
+        end
+      end
+
+      options = {
+        include: [:documents, :users],
+        params: { has_signature: has_signature }
+      }
+
+      render json: GroupSerializer.new(@group, options), status: :ok
     else
       render json: { errors: 'Group not found' }, status: :not_found
     end
@@ -168,7 +189,7 @@ class V1::GroupsController < V1::BaseController
       job_id = CompleteNdaJob.perform_async(last_document.id, user_id, @current_user.id)
       Rails.logger.info "Queued CompleteNDAJob for document_id: #{last_document.id} with job_id: #{job_id}"
     elsif last_document.party_date && !last_document.counter_party_date
-      last_document.update!(owner: :counter_party)
+      last_document.update!(owner: :counter_party) #TODO is this needed?
     end
 
     render json: GroupsSerializer.new(@group)
