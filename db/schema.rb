@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_14_195437) do
+ActiveRecord::Schema[7.1].define(version: 2024_04_17_204309) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -74,6 +74,8 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_14_195437) do
     t.integer "number_of_pages"
     t.integer "group_status_at_creation"
     t.bigint "creator_id"
+    t.string "party_company"
+    t.string "counter_party_company"
     t.index ["creator_id"], name: "index_documents_on_creator_id"
     t.index ["group_id"], name: "index_documents_on_group_id"
   end
@@ -140,6 +142,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_14_195437) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_login"
+    t.string "company"
     t.index ["email"], name: "index_users_on_email"
   end
 

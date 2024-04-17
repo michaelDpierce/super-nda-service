@@ -70,10 +70,11 @@ class V1::SharingController < V1::BaseController
     last_document = @group.last_document
   
     last_document.update!(
-      counter_party_full_name: params["full_name"],
-      counter_party_email:     params["email"],
-      counter_party_date:      params["date"],
-      counter_party_ip:        request.remote_ip,
+      counter_party_full_name:  params["full_name"],
+      counter_party_company:    params["company"],
+      counter_party_email:      params["email"],
+      counter_party_date:       params["date"],
+      counter_party_ip:         request.remote_ip,
       counter_party_user_agent: request.user_agent
     )
 

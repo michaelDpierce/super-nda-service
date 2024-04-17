@@ -38,26 +38,27 @@ class CompleteNdaJob
     blob = original_document.file.blob
 
     party_full_name = user.full_name
+    party_company   = user.company
     party_email     = user.email
 
     party_data = [
-      ["Name",  party_full_name],
-      ["Email", party_email],
-      ["Date",  new_document.party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
-      ["IP",    new_document.party_ip],
-      ["Agent", new_document.party_user_agent],
-      ["Security", "Authenticated"],
-      ["Disclosure", "None"]
+      ["Name",       party_full_name],
+      ["Company",    party_company],
+      ["Email",      party_email],
+      ["Date",       new_document.party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
+      ["IP",         new_document.party_ip],
+      ["Agent",      new_document.party_user_agent],
+      ["Security",   "Authenticated"]
     ]
 
     counter_party_data = [
-      ["Name",  new_document.counter_party_full_name],
-      ["Email", new_document.counter_party_email],
-      ["Date",  new_document.counter_party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
-      ["IP",    new_document.counter_party_ip],
-      ["Agent", new_document.counter_party_user_agent],
-      ["Security", "Passcode"],
-      ["Disclosure", "None"]
+      ["Name",       new_document.counter_party_full_name],
+      ["Company",    new_document.counter_party_company],
+      ["Email",      new_document.counter_party_email],
+      ["Date",       new_document.counter_party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
+      ["IP",         new_document.counter_party_ip],
+      ["Agent",      new_document.counter_party_user_agent],
+      ["Security",   "Passcode"]
     ]
 
     # Step 1: Retrieve the existing PDF from ActiveStorage

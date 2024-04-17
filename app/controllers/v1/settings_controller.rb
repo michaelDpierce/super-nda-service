@@ -17,6 +17,7 @@ class V1::SettingsController < V1::BaseController
     render json: {
       first_name: @user.first_name,
       last_name: @user.last_name,
+      company: @user.company,
       email: @user.email,
       signature: signature
     }
@@ -49,7 +50,7 @@ class V1::SettingsController < V1::BaseController
   end
 
   def user_params
-    params.require(:user).permit(:first_name, :last_name)
+    params.require(:user).permit(:first_name, :last_name, :company)
   end
 
   def base64_to_file(base64_string, filename)

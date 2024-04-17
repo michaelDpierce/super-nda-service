@@ -174,6 +174,7 @@ class V1::GroupsController < V1::BaseController
   
     last_document.update!(
       party_full_name: @current_user.full_name,
+      party_company: @current_user.company,
       party_email: @current_user.email,
       party_date: Time.now,
       party_ip: request.remote_ip,
