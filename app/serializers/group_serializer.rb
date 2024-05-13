@@ -42,6 +42,14 @@ class GroupSerializer < ApplicationSerializer
     params[:has_signature]
   end
 
+  attribute :logo_url do |object|
+    if object.project.logo.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(object.project.logo)
+    end
+  rescue URI::InvalidURIError
+    '/super-nda-logo.png'
+  end
+
   private
 
   def self.generate_blob_url_for(attachment)

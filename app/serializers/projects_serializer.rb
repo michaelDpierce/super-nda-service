@@ -19,12 +19,4 @@ class ProjectsSerializer < ApplicationSerializer
       full_name: object.user.try(:full_name_reverse) || '-',
     }
   end
-
-  attribute :logo do |object|
-    if object.logo.attached?
-      Rails.application.routes.url_helpers.rails_blob_url(object.logo)
-    end
-  rescue URI::InvalidURIError
-    nil
-  end
 end 

@@ -30,7 +30,7 @@ class ProjectSerializer < ApplicationSerializer
       }
     end
   rescue URI::InvalidURIError
-    nil
+    '/super-nda-logo.png'
   end
 
   attribute :template do |object|

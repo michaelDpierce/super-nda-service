@@ -42,7 +42,6 @@ class V1::ProjectsController < V1::BaseController
       @resource.where(id: project_ids)
         .includes(:project_users, :users, :groups)
         .with_attached_template
-        .with_attached_logo
 
     respond_to do |format|
       format.json do

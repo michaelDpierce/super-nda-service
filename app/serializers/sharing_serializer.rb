@@ -4,6 +4,14 @@ class SharingSerializer < ApplicationSerializer
 
   attribute :name, :code, :status
 
+  attribute :logo_url do |object|
+    if object.project.logo.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(object.project.logo)
+    end
+  rescue URI::InvalidURIError
+    '/super-nda-logo.png'
+  end
+    
   attribute :last_document do |object|
     last_document = object.last_document
 
