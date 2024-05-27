@@ -68,25 +68,8 @@ class V1::GroupsController < V1::BaseController
   # GET /v1/groups/:hashid/
   def show
     if @group.present?
-      if @project.authorized_agent_of_signatory_user_id
-        user = User.find(@project.authorized_agent_of_signatory_user_id)
-
-        if user.signature.attached?
-          has_signature = true
-        else
-          has_signature = false
-        end
-      else
-        if @current_user.signature.attached?
-          has_signature = true
-        else
-          has_signature = false
-        end
-      end
-
       options = {
-        include: [:documents, :users],
-        params: { has_signature: has_signature }
+        include: [:documents, :users]
       }
 
       render json: GroupSerializer.new(@group, options), status: :ok

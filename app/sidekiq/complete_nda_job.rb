@@ -14,14 +14,13 @@ class CompleteNdaJob
     Rails.logger.info "CompleteNDAJob for user_id: #{user_id}"
     Rails.logger.info "CompleteNDAJob for current_user_id: #{current_user_id}"
     
+    font_path = Rails.root.join('public', 'fonts', 'GreatVibes-Regular.ttf').to_s
+
     original_document = Document.find(document_id)
     user              = User.find(user_id)
     group             = original_document.group
     project           = original_document.project
     
-    party_signature         = user.signature&.download
-    counter_party_signature = original_document.counter_party_signature&.download
-
     # Set Working
     group.update!(job_status: :working)
     
@@ -41,9 +40,11 @@ class CompleteNdaJob
     party_company   = user.company
     party_email     = user.email
 
+    counter_party_full_name = new_document.counter_party_full_name
+
     party_data = [
       ["Name",       party_full_name],
-      ["Company",    party_company],
+      ["Company",    party_company || '-'],
       ["Email",      party_email],
       ["Date",       new_document.party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
       ["IP",         new_document.party_ip],
@@ -52,8 +53,8 @@ class CompleteNdaJob
     ]
 
     counter_party_data = [
-      ["Name",       new_document.counter_party_full_name],
-      ["Company",    new_document.counter_party_company],
+      ["Name",       counter_party_full_name],
+      ["Company",    new_document.counter_party_company || '-'],
       ["Email",      new_document.counter_party_email],
       ["Date",       new_document.counter_party_date.strftime("%Y-%m-%d %H:%M:%S %Z")],
       ["IP",         new_document.counter_party_ip],
@@ -71,6 +72,12 @@ class CompleteNdaJob
     new_pdf_tempfile = Tempfile.new(["new", ".pdf"])
 
     Prawn::Document.generate(new_pdf_tempfile.path) do |pdf|
+      pdf.font_families.update(
+        "GreatVibes" => {
+          normal: font_path
+        }
+      )
+
       page_title(pdf, "Signed Completion Certification")
       page_space(pdf, 20)
     
@@ -84,14 +91,14 @@ class CompleteNdaJob
       page_table(pdf, party_data)
       page_space(pdf, 20)
 
-      page_signature(pdf, party_signature)
+      page_signature(pdf, party_full_name)
       page_space(pdf, 20)
     
       page_header(pdf, "Certificate of Completion: Counterparty")
       page_table(pdf, counter_party_data)
       page_space(pdf, 20)
 
-      page_signature(pdf, counter_party_signature)
+      page_signature(pdf, counter_party_full_name)
       page_space(pdf, 20)
     end
 
@@ -220,11 +227,13 @@ class CompleteNdaJob
     end
   end
 
-  def page_signature(pdf, signature)
-    if signature
-      pdf.image StringIO.new(signature), width: 100, height: 50
-    else
-      pdf.text "Missing Signature", size: 12
+  def page_signature(pdf, signature_text)
+    pdf.font "GreatVibes" do
+      pdf.text signature_text, size: 12
+    end
+
+    pdf.font "Helvetica" do
+      pdf.text "", size: 12
     end
   end
 

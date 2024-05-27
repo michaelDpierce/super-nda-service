@@ -39,8 +39,4 @@ class ProjectUsersSerializer < ApplicationSerializer
   attribute :created_account do |object|
     object.user.source_id ? true : false
   end
-
-  attribute :has_signature do |object|
-    object.user.signature.attached?
-  end
 end

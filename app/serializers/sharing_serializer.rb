@@ -7,6 +7,8 @@ class SharingSerializer < ApplicationSerializer
   attribute :logo_url do |object|
     if object.project.logo.attached?
       Rails.application.routes.url_helpers.rails_blob_url(object.project.logo)
+    else
+      '/super-nda-logo.png'
     end
   rescue URI::InvalidURIError
     '/super-nda-logo.png'

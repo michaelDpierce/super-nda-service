@@ -111,6 +111,13 @@ class V1::ProjectsController < V1::BaseController
       },
     }
 
+    if params[:project][:logo] === 'null'
+      @project.logo.purge
+      params[:project].delete(:logo)
+    else
+      @project.logo.attach(params[:project][:logo])
+    end
+
     if @project.update(update_project_params)
       if was_not_archived && @project.archived?
         ProjectArchiveJob.perform_async(@project.id)
@@ -121,6 +128,7 @@ class V1::ProjectsController < V1::BaseController
       elsif !@project.completed?
         @project.end_date = nil
       end
+
       @project.save!
 
       render json: ProjectSerializer.new(@project, options)
@@ -202,7 +210,7 @@ class V1::ProjectsController < V1::BaseController
   # POST /v1/projects/:hashid/create_project_user
   def create_project_user
     ActiveRecord::Base.transaction do
-      email = params["data"]["email"]
+      email = params["data"]["email"].downcase
   
       existing_project_user =
         ProjectUser.joins(:user)

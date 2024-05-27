@@ -19,7 +19,6 @@ class Document < ApplicationRecord
   belongs_to :project
 
   has_one_attached :file, dependent: :destroy_async # DOCX
-  has_one_attached :counter_party_signature, dependent: :destroy_async #PNG
   
   enum owner: {
     party: 0,

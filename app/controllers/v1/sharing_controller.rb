@@ -78,20 +78,6 @@ class V1::SharingController < V1::BaseController
       counter_party_user_agent: request.user_agent
     )
 
-    signature_data    = params[:signature]
-    decoded_signature = Base64.decode64(signature_data.split(',')[1])
-
-    temp_file = Tempfile.new(["signature", ".png"])
-    temp_file.binmode
-    temp_file.write(decoded_signature)
-    temp_file.rewind
-
-    last_document.counter_party_signature.attach(
-      io: temp_file,
-      filename: "signature.png",
-      content_type: "image/png"
-    )
-
     # Mark as complete if both parties have signed
     if last_document.party_date.present? && last_document.counter_party_date.present?
       last_document.update!(owner: nil)
