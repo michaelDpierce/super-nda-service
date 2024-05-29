@@ -22,12 +22,11 @@ class ProjectSerializer < ApplicationSerializer
     params[:meta]
   end
 
-  attribute :logo do |object|
+  attribute :logo_url do |object|
     if object.logo.attached?
-      {
-        url: Rails.application.routes.url_helpers.rails_blob_url(object.logo),
-        name: object.logo.filename.to_s
-      }
+      Rails.application.routes.url_helpers.rails_blob_url(object.logo)
+    else
+      '/super-nda-logo.png'
     end
   rescue URI::InvalidURIError
     '/super-nda-logo.png'
