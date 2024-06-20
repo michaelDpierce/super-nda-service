@@ -165,41 +165,72 @@ class V1::ProjectsController < V1::BaseController
       base_url = "#{ENV['SERVER_PROTOCOL']}://#{ENV['SERVER_HOST']}/sharing"
 
       csv << [
-        "Name",
-        "Owner Name",
-        "Owner Email",
+        "Counterparty Name",
         "Status",
         "Last Interaction",
+        "Version",
         "Share Link",
         "URL",
         "Code",
-        "Version #",
-        "Document Unique ID",
-        "Notes",
         "ID",
+        "Document Unique ID",
         "Created At",
-        "Updated At"
+        "Updated At",
+        "Owner Name",
+        "Owner Email",
+        "Notes"
       ]
 
       groups.each do |group|
         last_document = last_documents.find_by(id: group.last_document_id)
         share_link = "#{base_url}/#{group.hashid}?code=#{group.code}"
+        
+        status = group.status
+        owner  = last_document&.owner
+
+        formatted_status =
+          if status === 'queued'
+            'Queued'
+          elsif status === 'sent'
+            'NDA Sent'
+          elsif status === 'negotiating' && owner === 'party'
+            'Redline Returned'
+          elsif status === 'negotiating' && owner === 'counter_party'
+            'Redline Sent'
+          elsif status === 'signing' && owner === nil
+            'Ready to Sign'
+          elsif status === 'signing' && owner === 'party'
+            'Sign NDA'
+          elsif status === 'signing' && owner === 'counter_party'
+            'Awaiting Signature'
+          elsif status === 'complete'
+            'Signed/Complete'
+          else
+            '-'
+          end
+
+        version = 
+          if last_document&.version_number.present?
+            "V#{last_document&.version_number}"
+          else
+            "V0"
+          end
 
         csv << [
           group.name,
-          group.user.try(:full_name),
-          group.user.try(:email),
-          group.status&.titleize,
-          last_document&.created_at&.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          formatted_status,
+          last_document&.created_at&.strftime("%Y-%m-%d %H:%M:%S %Z") || '-',
+          version,
           share_link,
           "#{base_url}/#{group.hashid}",
           group.code.to_s,
-          last_document&.version_number.to_s,
-          last_document&.hashid,
-          group.notes,
           group.hashid,
+          last_document&.hashid || '-',
           group.created_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
-          group.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z")
+          group.updated_at.strftime("%Y-%m-%d %H:%M:%S %Z"),
+          group.user.try(:full_name),
+          group.user.try(:email),
+          group.notes
         ]
       end
     end

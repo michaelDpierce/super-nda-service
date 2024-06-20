@@ -12,7 +12,9 @@ class ProjectSerializer < ApplicationSerializer
             :start_date,
             :end_date,
             :code,
-            :authorized_agent_of_signatory_user_id
+            :authorized_agent_of_signatory_user_id,
+            :party_count,
+            :counter_party_count
 
   attribute :permissions do |_, params|
     params[:permissions]
