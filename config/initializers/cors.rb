@@ -14,7 +14,9 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
       "https://app.supernda.com",
       "https://www.supernda.com",
       "super-nda-production.nyc3.digitaloceanspaces.com",
-      "https://super-nda-production.nyc3.digitaloceanspaces.com"
+      "https://super-nda-production.nyc3.digitaloceanspaces.com",
+      "api.supernda.com",
+      "wss://api.supernda.com"
     ]
 
     resource "*",
