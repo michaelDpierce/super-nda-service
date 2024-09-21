@@ -7,7 +7,7 @@ require "sidekiq/web"
 
 # Sidekiq web interface configuration
 Sidekiq::Web.use ActionDispatch::Cookies
-Sidekiq::Web.use ActionDispatch::Session::CookieStore, key: "_mb_session"
+Sidekiq::Web.use ActionDispatch::Session::CookieStore, key: "_supernda_session"
 
 Rails.application.routes.draw do
   # Root route
@@ -15,6 +15,8 @@ Rails.application.routes.draw do
 
   # Sidekiq web interface route
   mount Sidekiq::Web => "/sidekiq"
+
+  mount ActionCable.server => "/cable"
 
   # API versioning
   namespace :v1, defaults: { format: :json } do

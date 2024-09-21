@@ -12,6 +12,7 @@ class Document < ApplicationRecord
   
   after_commit :run_project_stats_job,  on: [:create, :update]
   after_create :update_group_last_document
+  after_update :broadcast_update
 
   belongs_to :creator, class_name: 'User', foreign_key: 'creator_id', optional: true
 
@@ -73,6 +74,13 @@ class Document < ApplicationRecord
 
   def update_group_last_document
     group.update(last_document_id: id)
+  end
+
+  def broadcast_update
+    ActionCable.server.broadcast(
+      "project_management_#{self.project.hashid}",
+      { message: "Update for Project: #{self.project.hashid}" }
+    )
   end
 
   def sanitize_filename(filename)

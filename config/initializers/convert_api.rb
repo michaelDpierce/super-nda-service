@@ -3,5 +3,5 @@
 # ==============================================================================
 
 ConvertApi.configure do |config|
-  config.api_secret = ENV["CONVERT_API_SECRET"]
+  config.api_credentials = ENV["CONVERT_API_SECRET"]
 end

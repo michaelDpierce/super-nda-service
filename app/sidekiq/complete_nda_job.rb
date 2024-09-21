@@ -134,8 +134,6 @@ class CompleteNdaJob
     )
 
     group.update!(job_status: :completed)
-
-    # TODO, mark if job fails
   end
 
   private

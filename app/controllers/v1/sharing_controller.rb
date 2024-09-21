@@ -78,7 +78,7 @@ class V1::SharingController < V1::BaseController
       counter_party_user_agent: request.user_agent
     )
 
-    # Mark as complete if both parties have signed
+    # Mark as complete if both parties have signed - TODO this may not trigger at all
     if last_document.party_date.present? && last_document.counter_party_date.present?
       last_document.update!(owner: nil)
       @group.update!(status: :complete) # Tracking the lifecycle of the group

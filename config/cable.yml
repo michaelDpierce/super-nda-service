@@ -1,0 +1,19 @@
+# ==============================================================================
+# Copyright 2024, SuperNDA. All rights reserved.
+# ==============================================================================
+
+default: &default
+  url: <%= "#{ENV.fetch("REDIS_URL") { "redis://localhost:6379" }}/1" %>
+
+development:
+  <<: *default
+  adapter: redis
+
+test:
+  <<: *default
+  adapter: async
+
+production:
+  <<: *default
+  adapter: redis
+  channel_prefix: final_file_service_production
