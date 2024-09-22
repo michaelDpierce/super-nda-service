@@ -62,14 +62,16 @@ class Project < ApplicationRecord
   end
 
   def stats
-    counts = groups.group(:status).count
+    counts       = groups.group(:status).count
+    passed_count = groups.where(passed: true).count
     
     {
       queued: counts['queued'] || 0,
       sent: counts['sent'] || 0,
       negotiating: counts['negotiating'] || 0,
       signing: counts['signing'] || 0,
-      complete: counts['complete'] || 0
+      complete: counts['complete'] || 0,
+      passed: passed_count
     }
   end
 end

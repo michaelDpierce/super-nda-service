@@ -2,7 +2,7 @@ class SharingSerializer < ApplicationSerializer
   set_id :hashid
   set_type :group
 
-  attribute :name, :code, :status
+  attribute :name, :code, :status, :passed
 
   attribute :logo_url do |object|
     if object.project.logo.attached?

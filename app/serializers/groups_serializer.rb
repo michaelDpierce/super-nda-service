@@ -8,6 +8,7 @@ class GroupsSerializer < ApplicationSerializer
 
   attribute :name,
             :status,
+            :passed,
             :notes,
             :user_id,
             :code,

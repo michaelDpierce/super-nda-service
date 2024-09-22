@@ -157,7 +157,7 @@ class V1::ProjectsController < V1::BaseController
 
   # GET /v1/projects/:hashid/export_groups.csv
   def export_groups
-    groups            = @project.groups.includes(:user)
+    groups            = @project.groups.includes(:user).order(:passed, :name)
     last_document_ids = groups.pluck(:last_document_id).compact
     last_documents    = Document.where(id: last_document_ids)
 
@@ -166,6 +166,7 @@ class V1::ProjectsController < V1::BaseController
 
       csv << [
         "Counterparty Name",
+        "Group Status",
         "Status",
         "Last Interaction",
         "Version",
@@ -185,6 +186,7 @@ class V1::ProjectsController < V1::BaseController
         last_document = last_documents.find_by(id: group.last_document_id)
         share_link = "#{base_url}/#{group.hashid}?code=#{group.code}"
         
+        group_status = group.passed ? "Passed" : "Active"
         status = group.status
         owner  = last_document&.owner
 
@@ -218,6 +220,7 @@ class V1::ProjectsController < V1::BaseController
 
         csv << [
           group.name,
+          group_status,
           formatted_status,
           last_document&.created_at&.strftime("%Y-%m-%d %H:%M:%S %Z") || '-',
           version,

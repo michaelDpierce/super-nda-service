@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2024_04_17_204309) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_21_221812) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -92,6 +92,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_04_17_204309) do
     t.bigint "last_document_id"
     t.string "job_id"
     t.integer "job_status", default: 0
+    t.boolean "passed", default: false
     t.index ["code"], name: "index_groups_on_code"
     t.index ["last_document_id"], name: "index_groups_on_last_document_id"
     t.index ["project_id", "name", "status"], name: "index_groups_on_project_id_and_name_and_status"

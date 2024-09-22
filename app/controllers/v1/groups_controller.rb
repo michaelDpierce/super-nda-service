@@ -187,7 +187,7 @@ class V1::GroupsController < V1::BaseController
   def update_group_params
     params
       .require(:group)
-      .permit(:name, :status, :notes)
+      .permit(:name, :status, :passed, :notes)
       .select { |x,v| v.present? }
   end
 
