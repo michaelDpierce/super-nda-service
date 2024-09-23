@@ -166,8 +166,9 @@ class V1::ProjectsController < V1::BaseController
 
       csv << [
         "Counterparty Name",
-        "Group Status",
         "Status",
+        "Process Status",
+        "Passed",
         "Last Interaction",
         "Version",
         "Share Link",
@@ -186,9 +187,11 @@ class V1::ProjectsController < V1::BaseController
         last_document = last_documents.find_by(id: group.last_document_id)
         share_link = "#{base_url}/#{group.hashid}?code=#{group.code}"
         
-        group_status = group.passed ? "Passed" : "Active"
-        status = group.status
-        owner  = last_document&.owner
+        status         = group.status
+        process_status = group.process_status.present? ? group.process_status : '-'
+        passed         = group.passed ? "Passed" : "Active"
+
+        owner          = last_document&.owner
 
         formatted_status =
           if status === 'queued'
@@ -220,8 +223,9 @@ class V1::ProjectsController < V1::BaseController
 
         csv << [
           group.name,
-          group_status,
           formatted_status,
+          process_status,
+          passed,
           last_document&.created_at&.strftime("%Y-%m-%d %H:%M:%S %Z") || '-',
           version,
           share_link,
@@ -341,14 +345,20 @@ class V1::ProjectsController < V1::BaseController
   end
 
   def groups
-    groups =
-      @project.groups.eager_load(:last_document)
+    # Separate groups into passed: false and passed: true
+    groups_not_passed = @project.groups.eager_load(:last_document)
+                      .where(passed: false)
+                      .sort_by { |g| g.last_document&.created_at || Time.now }
 
-    sorted_groups = groups.sort_by do |g|
-      g.last_document&.created_at || Time.now
-    end
+    groups_passed = @project.groups.eager_load(:last_document)
+                    .where(passed: true)
+                    .sort_by { |g| g.last_document&.created_at || Time.now }
+
+    # Combine the two sorted sets of groups
+    sorted_groups = groups_not_passed + groups_passed
 
     serialized_groups = GroupsSerializer.new(sorted_groups).serializable_hash
+
     stats             = @project.stats
     
     render json: serialized_groups.merge(stats: stats), status: :ok

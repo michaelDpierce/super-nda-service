@@ -63,7 +63,7 @@ class AuthService
       User.find(removalble_user.first).destroy
     end
   rescue Exception => e
-    puts e.message
+    Rails.logger.error "Error removing upcase email user: #{e.message}"
   end
 
   def remove_duplicate_email_user(data)
@@ -80,7 +80,7 @@ class AuthService
       User.find(removalble_user.first).destroy
     end
   rescue Exception => e
-    puts e.message
+    Rails.logger.error "Error duplicate email user: #{e.message}"
   end
 
   def create_user_by_source(data)

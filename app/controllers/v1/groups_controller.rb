@@ -80,13 +80,11 @@ class V1::GroupsController < V1::BaseController
 
   # DELETE /v1/groups/:hashid
   def destroy
-    # ActiveRecord::Base.transaction do
-      last_document = @group.last_document
-      last_document.destroy! if last_document.present?
-    
-      @group.documents.destroy_all
-      @group.destroy!
-    # end
+    last_document = @group.last_document
+    last_document.destroy! if last_document.present?
+  
+    @group.documents.destroy_all
+    @group.destroy!
     
     head(:no_content)
   end
@@ -167,6 +165,7 @@ class V1::GroupsController < V1::BaseController
     if last_document.party_date && last_document.counter_party_date
       job_id = CompleteNdaJob.perform_async(last_document.id, user_id, @current_user.id)
       @group.update!(job_id: job_id, job_status: :in_queue)
+      
       Rails.logger.info "Queued CompleteNDAJob for document_id: #{last_document.id} with job_id: #{job_id}"
     end
 
@@ -187,7 +186,7 @@ class V1::GroupsController < V1::BaseController
   def update_group_params
     params
       .require(:group)
-      .permit(:name, :status, :passed, :notes)
+      .permit(:name, :status, :process_status, :passed, :notes)
       .select { |x,v| v.present? }
   end
 
